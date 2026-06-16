@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur K8s - Simulation & Guide pédagogique</title>
+    <!-- JSZip pour le téléchargement -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Mermaid.js pour les diagrammes -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7fc;
+            display: flex;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            padding: 30px 35px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,20,50,0.15);
+        }
+        h1 {
+            color: #1a2b4c;
+            border-left: 6px solid #2a7de1;
+            padding-left: 15px;
+            font-weight: 600;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .sub {
+            color: #5e6f8d;
+            margin-bottom: 25px;
+            font-size: 15px;
+            padding-left: 21px;
+        }
+        .simulation-card {
+            background: #f0f7ff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #d4e2f5;
+        }
+        .simulation-card h2 {
+            font-size: 18px;
+            color: #1a2b4c;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .simulation-card h2 small {
+            font-weight: 400;
+            color: #4a6382;
+            font-size: 14px;
+        }
+        #mermaid-container {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            overflow-x: auto;
+            text-align: center;
+            min-height: 200px;
+            border: 1px solid #ccddf5;
+        }
+        #mermaid-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 30px;
+        }
+        .full-width { grid-column: 1 / -1; }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label {
+            font-weight: 600;
+            color: #1f334f;
+            font-size: 14px;
+        }
+        .badge {
+            font-weight: 400;
+            color: #6b7a93;
+            font-size: 12px;
+        }
+        select, input {
+            padding: 10px 14px;
+            border: 1.5px solid #d6dfeb;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #fafcff;
+            transition: 0.2s;
+            color: #1a2b4c;
+        }
+        select:focus, input:focus {
+            border-color: #2a7de1;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42,125,225,0.15);
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8faff;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #e6edf6;
+            cursor: pointer;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #2a7de1;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            cursor: pointer;
+            margin: 0;
+        }
+        .btn {
+            background: #1a2b4c;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.25s;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .btn:hover {
+            background: #2a7de1;
+            transform: scale(1.01);
+            box-shadow: 0 8px 20px rgba(42,125,225,0.3);
+        }
+        #output {
+            margin-top: 30px;
+            background: #f0f4fa;
+            border-radius: 14px;
+            padding: 20px;
+            display: none;
+            border: 1px solid #dce5ef;
+        }
+        #output h3 {
+            color: #1a2b4c;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #file-list {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #d6dfeb;
+        }
+        #file-list div {
+            border-bottom: 1px solid #e6edf6;
+            padding: 6px 0;
+        }
+        .download-btn {
+            background: #0d8a5e;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 15px;
+        }
+        .download-btn:hover {
+            background: #0b6e4b;
+            transform: scale(1.02);
+        }
+        .flex-center { display: flex; justify-content: center; }
+        .helper { font-size: 12px; color: #6e7f99; margin-top: 4px; }
+        @media (max-width: 650px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📘 Générateur K8s + Simulation & Guide</h1>
+    <p class="sub">Choisissez vos options → Visualisez l’architecture en direct → Téléchargez les fichiers + le guide pédagogique .txt</p>
+
+    <!-- SECTION SIMULATION -->
+    <div class="simulation-card">
+        <h2>
+            📊 Simulation - Architecture du Cluster (aperçu visuel)
+            <small>mise à jour en temps réel</small>
+        </h2>
+        <div id="mermaid-container">
+            <pre class="mermaid" id="mermaid-diagram">
+                <!-- Le diagramme sera injecté ici par JavaScript -->
+            </pre>
+        </div>
+        <p style="margin-top:10px; font-size:13px; color:#3d5a7a; background:#e5effa; padding:8px 14px; border-radius:8px;">
+            ⚡ Ce schéma représente le flux réseau et les composants de votre cluster. Les flèches indiquent le chemin du trafic utilisateur (de l’extérieur jusqu’aux Pods).
+        </p>
+    </div>
+
+    <!-- FORMULAIRE -->
+    <form id="configForm">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Distribution</label>
+                <select id="distro">
+                    <option value="kind">Kind (Docker)</option>
+                    <option value="kubeadm">Kubeadm (VMs/Bare-metal)</option>
+                    <option value="k3s">K3s (léger)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>CNI (réseau)</label>
+                <select id="cni">
+                    <option value="calico">Calico</option>
+                    <option value="flannel">Flannel</option>
+                    <option value="cilium">Cilium</option>
+                    <option value="weave">Weave</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nœuds workers</label>
+                <input type="number" id="workers" value="2" min="0" max="10">
+            </div>
+            <div class="form-group">
+                <label>Nœuds masters</label>
+                <input type="number" id="masters" value="1" min="1" max="5">
+            </div>
+            <div class="form-group full-width checkbox-group">
+                <input type="checkbox" id="enableLb" checked>
+                <label for="enableLb"><strong>Activer LoadBalancer (MetalLB)</strong> <span class="badge">(plage d'IPs)</span></label>
+            </div>
+            <div class="form-group full-width" id="lbRangeGroup">
+                <label>Plage d'IPs pour MetalLB <span class="badge">(ex: 192.168.1.240-192.168.1.250)</span></label>
+                <input type="text" id="lbRange" value="192.168.1.240-192.168.1.250">
+                <span class="helper">⚠️ Pour Kind, utilisez plutôt 172.18.0.200-172.18.0.250 (réseau Docker).</span>
+            </div>
+            <div class="form-group full-width checkbox-group">
+                <input type="checkbox" id="enableIngress" checked>
+                <label for="enableIngress"><strong>Ingress Controller</strong> (Nginx)</label>
+            </div>
+            <div class="form-group full-width checkbox-group">
+                <input type="checkbox" id="enableStorage" checked>
+                <label for="enableStorage"><strong>Stockage persistant</strong> (Local Path)</label>
+            </div>
+            <div class="form-group full-width checkbox-group">
+                <input type="checkbox" id="enableMonitoring">
+                <label for="enableMonitoring"><strong>Monitoring</strong> (Prometheus + Grafana)</label>
+            </div>
+            <div class="form-group full-width checkbox-group">
+                <input type="checkbox" id="enableDashboard">
+                <label for="enableDashboard"><strong>Tableau de bord</strong> (Kubernetes Dashboard)</label>
+            </div>
+            <div class="form-group full-width">
+                <label>Ports supplémentaires à exposer <span class="badge">(ex: 80,443,8080)</span></label>
+                <input type="text" id="extraPorts" value="80,443">
+            </div>
+        </div>
+        <button type="button" class="btn" id="generateBtn">🚀 Générer les fichiers + Guide pédagogique</button>
+    </form>
+
+    <!-- SECTION RÉSULTATS -->
+    <div id="output">
+        <h3>
+            <span>📁 Fichiers générés</span>
+            <span id="fileCount"></span>
+        </h3>
+        <div id="file-list">Liste des fichiers prêts...</div>
+        <div class="flex-center">
+            <button class="download-btn" id="downloadZipBtn">⬇️ Télécharger le ZIP (Configs + Guide .txt)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // --- Initialisation de Mermaid ---
+        mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: { primaryColor: '#2a7de1', primaryTextColor: '#fff', primaryBorderColor: '#1a2b4c', lineColor: '#1a2b4c', secondaryColor: '#f0f7ff', tertiaryColor: '#e6edf6' } });
+
+        let generatedFiles = {};
+        const generateBtn = document.getElementById('generateBtn');
+        const outputDiv = document.getElementById('output');
+        const fileListDiv = document.getElementById('file-list');
+        const fileCountSpan = document.getElementById('fileCount');
+        const downloadBtn = document.getElementById('downloadZipBtn');
+
+        // --- Récupération des options depuis le formulaire ---
+        function getOptions() {
+            return {
+                distro: document.getElementById('distro').value,
+                cni: document.getElementById('cni').value,
+                workers: parseInt(document.getElementById('workers').value) || 0,
+                masters: parseInt(document.getElementById('masters').value) || 1,
+                enableLb: document.getElementById('enableLb').checked,
+                lbRange: document.getElementById('lbRange').value.trim() || '192.168.1.240-192.168.1.250',
+                enableIngress: document.getElementById('enableIngress').checked,
+                enableStorage: document.getElementById('enableStorage').checked,
+                enableMonitoring: document.getElementById('enableMonitoring').checked,
+                enableDashboard: document.getElementById('enableDashboard').checked,
+                extraPorts: document.getElementById('extraPorts').value.trim()
+            };
+        }
+
+        // --- GÉNÉRATION DU DIAGRAMME MERMAID (SIMULATION) ---
+        function generateMermaidDefinition(opts) {
+            const { distro, cni, workers, masters, enableLb, lbRange, enableIngress, enableStorage, enableMonitoring, enableDashboard } = opts;
+
+            let def = 'graph TD\n';
+            def += '    User(("👤 Utilisateur"))\n';
+
+            // Flux du trafic
+            if (enableLb) {
+                def += `    LB["⚖️ LoadBalancer MetalLB (${lbRange})"]\n`;
+                def += '    User --> LB\n';
+                if (enableIngress) {
+                    def += '    Ingress["🚪 Ingress Controller Nginx"]\n';
+                    def += '    LB --> Ingress\n';
+                    def += '    Ingress --> Service["🔗 Service K8s"]\n';
+                } else {
+                    def += '    LB --> Service["🔗 Service K8s (LoadBalancer)"]\n';
+                }
+            } else {
+                if (enableIngress) {
+                    def += '    Ingress["🚪 Ingress Controller Nginx (NodePort)"]\n';
+                    def += '    User --> Ingress\n';
+                    def += '    Ingress --> Service["🔗 Service K8s"]\n';
+                } else {
+                    def += '    Service["🔗 Service K8s (NodePort/ClusterIP)"]\n';
+                    def += '    User --> Service\n';
+                }
+            }
+
+            // Workers
+            const workerNodes = [];
+            for (let i = 1; i <= Math.min(workers, 3); i++) {
+                workerNodes.push(`W${i}["💻 Worker ${i}"]`);
+            }
+            if (workers > 3) {
+                workerNodes.push(`Wx["💻 ... +${workers-3} autres"]`);
+            }
+            if (workers === 0) {
+                workerNodes.push('W0["💻 Pas de worker (single-node)"]');
+            }
+            def += '    Service --> Pods["📦 Pods (App)"]\n';
+            workerNodes.forEach(w => {
+                def += `    Pods --> ${w.split('[')[0]}\n`;
+            });
+
+            // Control Plane
+            def += '    Master["🧠 Control Plane (API Server, Scheduler, etcd)"]\n';
+            if (masters > 1) {
+                def += `    MasterHA["🧠 ${masters} Masters (HA)"]\n`;
+                def += '    Master --> MasterHA\n';
+                def += '    MasterHA --> W1\n';
+                workerNodes.forEach(w => {
+                    const id = w.split('[')[0];
+                    if (id !== 'W0' && id !== 'Wx') {
+                        def += `    MasterHA --> ${id}\n`;
+                    }
+                });
+            } else {
+                workerNodes.forEach(w => {
+                    const id = w.split('[')[0];
+                    if (id !== 'W0' && id !== 'Wx') {
+                        def += `    Master --> ${id}\n`;
+                    }
+                });
+            }
+
+            // CNI
+            def += `    CNI["🌐 CNI: ${cni}"]\n`;
+            workerNodes.forEach(w => {
+                const id = w.split('[')[0];
+                if (id !== 'W0' && id !== 'Wx') {
+                    def += `    CNI --> ${id}\n`;
+                }
+            });
+            if (workers === 0) def += '    CNI --> Master\n';
+
+            // Options additionnelles (en bas, attachées à Master)
+            let optCount = 0;
+            def += '    subgraph Options["📦 Composants additionnels"]\n';
+            if (enableStorage) {
+                def += '        Storage["💾 StorageClass (Local Path)"]\n';
+                optCount++;
+            }
+            if (enableMonitoring) {
+                def += '        Monitoring["📊 Monitoring (Prometheus + Grafana)"]\n';
+                optCount++;
+            }
+            if (enableDashboard) {
+                def += '        Dashboard["🖥️ Dashboard K8s"]\n';
+                optCount++;
+            }
+            if (optCount === 0) {
+                def += '        None["Aucun composant additionnel sélectionné"]\n';
+            }
+            def += '    end\n';
+
+            // Lier les options à Master
+            if (enableStorage) def += '    Master --> Storage\n';
+            if (enableMonitoring) def += '    Master --> Monitoring\n';
+            if (enableDashboard) def += '    Master --> Dashboard\n';
+
+            // Styliser les nœuds
+            def += '    classDef master fill:#1a2b4c,color:#fff,stroke:#0f1a2e,stroke-width:2px;\n';
+            def += '    classDef worker fill:#e6edf6,color:#1a2b4c,stroke:#a0b8d0;\n';
+            def += '    classDef service fill:#2a7de1,color:#fff,stroke:#1a5bb5;\n';
+            def += '    classDef option fill:#d4e2f5,color:#1a2b4c,stroke:#7f9fbf;\n';
+            def += '    class Master master;\n';
+            workerNodes.forEach(w => {
+                const id = w.split('[')[0];
+                def += `    class ${id} worker;\n`;
+            });
+            def += '    class Service,Ingress,LB service;\n';
+            def += '    class Storage,Monitoring,Dashboard,None option;\n';
+
+            return def;
+        }
+
+        // --- Rendu du diagramme ---
+        async function renderDiagram() {
+            const container = document.getElementById('mermaid-container');
+            const opts = getOptions();
+            const def = generateMermaidDefinition(opts);
+            try {
+                // On utilise un ID unique pour éviter les conflits
+                const { svg } = await mermaid.render('mermaid-diagram', def);
+                container.innerHTML = svg;
+            } catch (e) {
+                console.warn('Mermaid render error:', e);
+                container.innerHTML = `<pre style="color:red; text-align:left;">❌ Erreur de rendu du diagramme. Vérifiez les options.</pre>`;
+            }
+        }
+
+        // --- Fonctions de génération des YAML / scripts (inchangées) ---
+        function generateKindConfig(distro, workers, masters, extraPorts) {
+            if (distro !== 'kind') return null;
+            let nodes = [{ role: "control-plane" }];
+            for (let i = 0; i < workers; i++) nodes.push({ role: "worker" });
+            let config = { kind: "Cluster", apiVersion: "kind.x-k8s.io/v1alpha4", nodes: nodes, networking: { disableDefaultCNI: true } };
+            if (extraPorts && extraPorts.trim() !== '') {
+                const ports = extraPorts.split(',').map(p => p.trim()).filter(p => p !== '');
+                if (ports.length > 0) {
+                    config.nodes[0].extraPortMappings = ports.map(p => ({ containerPort: parseInt(p), hostPort: parseInt(p), protocol: "TCP" }));
+                }
+            }
+            return yamlDump(config);
+        }
+        function generateKubeadmConfig(distro) {
+            if (distro !== 'kubeadm') return null;
+            return `apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: "0.0.0.0"
+  bindPort: 6443
+nodeRegistration:
+  name: "node01"
+  criSocket: "unix:///var/run/containerd/containerd.sock"
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+kubernetesVersion: "v1.28.0"
+controlPlaneEndpoint: "192.168.1.100:6443"
+networking:
+  serviceSubnet: "10.96.0.0/12"
+  podSubnet: "192.168.0.0/16"`;
+        }
+        function generateK3sConfig(distro) {
+            if (distro !== 'k3s') return null;
+            return `#!/bin/bash
+# Script d'installation K3s (désactive traefik, servicelb et flannel intégrés)
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik --disable servicelb --flannel-backend=none" sh -
+sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kube/config
+chmod 600 ~/.kube/config
+echo "K3s installé. Poursuivez avec le CNI."`;
+        }
+        function generateCNIFile(cni) {
+            const urls = {
+                calico: "https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico.yaml",
+                flannel: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml",
+                cilium: "https://raw.githubusercontent.com/cilium/cilium/main/install/kubernetes/quick-install.yaml",
+                weave: "https://github.com/weaveworks/weave/releases/latest/download/weave-daemonset-k8s.yaml"
+            };
+            return `# CNI choisi : ${cni}\nkubectl apply -f ${urls[cni]}`;
+        }
+        function generateMetalLBConfig(enable, range) {
+            if (!enable) return null;
+            return `apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - ${range}`;
+        }
+        function generateMetalLBInstallScript(enable) {
+            if (!enable) return null;
+            return `#!/bin/bash
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/manifests/namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/manifests/metallb.yaml
+kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=60s
+kubectl apply -f metallb-configmap.yaml
+echo "MetalLB installé."`;
+        }
+        function generateIngress(enable) {
+            if (!enable) return null;
+            return `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.0/deploy/static/provider/cloud/deploy.yaml`;
+        }
+        function generateStorage(enable) {
+            if (!enable) return null;
+            return `apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer`;
+        }
+        function generateMonitoring(enable) {
+            if (!enable) return null;
+            return `#!/bin/bash
+kubectl create -f https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/setup/
+kubectl create -f https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/
+echo "Monitoring installé. Accès Grafana : port-forward svc/grafana -n monitoring 3000:3000"`;
+        }
+        function generateDashboard(enable) {
+            if (!enable) return null;
+            return `#!/bin/bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+kubectl create serviceaccount dashboard-admin -n kubernetes-dashboard
+kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kubernetes-dashboard:dashboard-admin
+echo "Token :"
+kubectl create token dashboard-admin -n kubernetes-dashboard
+echo "Accès : kubectl proxy puis http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/"`;
+        }
+        function generateSummary(opts) {
+            return JSON.stringify(opts, null, 2);
+        }
+        function yamlDump(obj, indent = 0) {
+            const lines = [];
+            const spaces = ' '.repeat(indent);
+            for (const [key, value] of Object.entries(obj)) {
+                if (Array.isArray(value)) {
+                    lines.push(`${spaces}${key}:`);
+                    for (const item of value) {
+                        if (typeof item === 'object' && item !== null) {
+                            lines.push(`${spaces}  -`);
+                            for (const [k, v] of Object.entries(item)) {
+                                if (typeof v === 'object' && v !== null) {
+                                    lines.push(`${spaces}    ${k}:`);
+                                    for (const [k2, v2] of Object.entries(v)) {
+                                        lines.push(`${spaces}      ${k2}: ${v2}`);
+                                    }
+                                } else {
+                                    lines.push(`${spaces}    ${k}: ${v}`);
+                                }
+                            }
+                        } else {
+                            lines.push(`${spaces}  - ${item}`);
+                        }
+                    }
+                } else if (typeof value === 'object' && value !== null) {
+                    lines.push(`${spaces}${key}:`);
+                    lines.push(yamlDump(value, indent + 2));
+                } else {
+                    lines.push(`${spaces}${key}: ${value}`);
+                }
+            }
+            return lines.join('\n');
+        }
+
+        // --- GUIDE PÉDAGOGIQUE COMPLET .txt ---
+        function generateFullGuide(opts) {
+            const { distro, cni, workers, masters, enableLb, lbRange, enableIngress, enableStorage, enableMonitoring, enableDashboard, extraPorts } = opts;
+            let guide = `================================================================================
+          📘 GUIDE COMPLET D'INSTALLATION KUBERNETES (A À Z) - VERSION PÉDAGOGIQUE
+================================================================================
+
+📅 Généré le : ${new Date().toLocaleString()}
+
+Ce guide détaille CHAQUE commande avec des explications sur le fonctionnement interne.
+
+--------------------------------------------------------------------------------
+1. 🔧 PRÉREQUIS
+--------------------------------------------------------------------------------
+- kubectl (client Kubernetes)
+- Docker (pour Kind) ou containerd (pour Kubeadm/K3s)
+- curl, bash
+
+--------------------------------------------------------------------------------
+2. ☸️ CRÉATION DU CLUSTER (${distro.toUpperCase()})
+--------------------------------------------------------------------------------
+`;
+            if (distro === 'kind') {
+                guide += `📄 Fichier : kind-config.yaml
+➜ kind create cluster --config=kind-config.yaml
+🔍 Explication : Kind lance des conteneurs Docker comme nœuds Kubernetes.
+   'disableDefaultCNI: true' désactive kindnet pour laisser place à ${cni}.
+✅ Vérification : kubectl get nodes (1 master, ${workers} workers)
+`;
+            } else if (distro === 'kubeadm') {
+                guide += `📄 Fichier : kubeadm-config.yaml
+➜ sudo kubeadm init --config=kubeadm-config.yaml
+🔍 Explication : Initialise le plan de contrôle (API Server, etcd, Scheduler).
+   Puis configurez kubeconfig et rejoignez les workers avec 'kubeadm join'.
+✅ Vérification : kubectl get nodes
+`;
+            } else {
+                guide += `📄 Fichier : install-k3s.sh
+➜ bash install-k3s.sh
+🔍 Explication : Installe K3s en désactivant traefik, servicelb et flannel
+   pour les remplacer par ${cni} et nos propres outils.
+✅ Vérification : kubectl get nodes
+`;
+            }
+
+            guide += `
+--------------------------------------------------------------------------------
+3. 🌐 INSTALLATION DU CNI (${cni})
+--------------------------------------------------------------------------------
+📄 Fichier : 00-cni.txt
+➜ kubectl apply -f <url_${cni}>
+🔍 Explication : Le CNI attribue les IPs aux Pods et gère la communication inter-nœuds.
+✅ Vérification : kubectl get pods --all-namespaces | grep ${cni} (Running)
+`;
+
+            if (enableLb) {
+                guide += `
+--------------------------------------------------------------------------------
+4. ⚖️ LOAD BALANCER (MetalLB) - Plage: ${lbRange}
+--------------------------------------------------------------------------------
+📄 Fichiers : 02-metallb-configmap.yaml, install-metallb.sh
+➜ bash install-metallb.sh
+🔍 Explication : MetalLB écoute en Layer2 pour attribuer des IPs externes aux Services LoadBalancer.
+✅ Vérification : kubectl get pods -n metallb-system
+`;
+            } else {
+                guide += `
+--------------------------------------------------------------------------------
+4. ⚖️ LOAD BALANCER désactivé
+--------------------------------------------------------------------------------
+Utilisez NodePort (kubectl expose --type=NodePort) ou port-forward pour tester.
+`;
+            }
+            if (enableIngress) guide += `
+--------------------------------------------------------------------------------
+5. 🚪 INGRESS (Nginx)
+--------------------------------------------------------------------------------
+➜ kubectl apply -f <manifest>
+🔍 Explication : Reverse proxy HTTP/HTTPS qui route le traffic selon les règles d'Ingress.
+✅ Vérification : kubectl get svc -n ingress-nginx
+`;
+            if (enableStorage) guide += `
+--------------------------------------------------------------------------------
+6. 💾 STOCKAGE (Local Path)
+--------------------------------------------------------------------------------
+➜ kubectl apply -f 04-storage-class.yaml
+🔍 Explication : Provisionne automatiquement des volumes sur le disque local.
+✅ Vérification : kubectl get storageclass
+`;
+            if (enableMonitoring) guide += `
+--------------------------------------------------------------------------------
+7. 📊 MONITORING (Prometheus/Grafana)
+--------------------------------------------------------------------------------
+➜ bash 05-monitoring.sh
+🔍 Explication : Prometheus collecte les métriques, Grafana les visualise.
+✅ Accès : kubectl port-forward svc/grafana -n monitoring 3000:3000
+`;
+            if (enableDashboard) guide += `
+--------------------------------------------------------------------------------
+8. 🖥️ DASHBOARD
+--------------------------------------------------------------------------------
+➜ bash 06-dashboard.sh
+🔍 Explication : Interface Web pour gérer les ressources.
+✅ Accès : kubectl proxy + token.
+`;
+            guide += `
+--------------------------------------------------------------------------------
+9. 🚀 TEST FINAL (Déploiement Nginx)
+--------------------------------------------------------------------------------
+➜ kubectl create deployment test-nginx --image=nginx:alpine
+➜ kubectl expose deployment test-nginx --port=80 --type=${enableLb ? 'LoadBalancer' : 'NodePort'}
+🔍 Explication : Vérifie que le réseau, le LB et le routage fonctionnent.
+✅ Test : curl http://<IP> (ou NodePort)
+--------------------------------------------------------------------------------
+📂 Fichiers générés : kind-config.yaml, 00-cni.txt, ... GUIDE-COMPLET.txt
+================================================================================
+`;
+            return guide;
+        }
+
+        // --- Fonction principale de génération des fichiers ---
+        function generateConfigs() {
+            const opts = getOptions();
+            const { distro, cni, workers, masters, enableLb, lbRange, enableIngress, enableStorage, enableMonitoring, enableDashboard, extraPorts } = opts;
+            const files = {};
+
+            let mainConfig = null;
+            if (distro === 'kind') mainConfig = generateKindConfig(distro, workers, masters, extraPorts);
+            else if (distro === 'kubeadm') mainConfig = generateKubeadmConfig(distro);
+            else if (distro === 'k3s') mainConfig = generateK3sConfig(distro);
+            if (mainConfig) {
+                const fname = distro === 'kind' ? 'kind-config.yaml' : (distro === 'kubeadm' ? 'kubeadm-config.yaml' : 'install-k3s.sh');
+                files[fname] = mainConfig;
+            }
+            files['00-cni.txt'] = generateCNIFile(cni);
+            if (enableLb) {
+                files['02-metallb-configmap.yaml'] = generateMetalLBConfig(enableLb, lbRange);
+                files['install-metallb.sh'] = generateMetalLBInstallScript(enableLb);
+            }
+            if (enableIngress) files['03-ingress-nginx.txt'] = generateIngress(enableIngress);
+            if (enableStorage) files['04-storage-class.yaml'] = generateStorage(enableStorage);
+            if (enableMonitoring) files['05-monitoring.sh'] = generateMonitoring(enableMonitoring);
+            if (enableDashboard) files['06-dashboard.sh'] = generateDashboard(enableDashboard);
+            files['config-summary.json'] = generateSummary(opts);
+
+            let order = `# CHECKLIST RAPIDE (${distro})\n`;
+            order += `1. Créer le cluster\n2. CNI (00-cni.txt)\n`;
+            if (enableLb) order += `3. MetalLB (install-metallb.sh)\n`;
+            if (enableIngress) order += `4. Ingress\n`;
+            if (enableStorage) order += `5. StorageClass\n`;
+            if (enableMonitoring) order += `6. Monitoring\n`;
+            if (enableDashboard) order += `7. Dashboard\n`;
+            order += `8. Test Nginx\n`;
+            files['00-ORDER.txt'] = order;
+
+            files['GUIDE-COMPLET.txt'] = generateFullGuide(opts);
+            return files;
+        }
+
+        // --- UI ---
+        function updateUI(files) {
+            const fileNames = Object.keys(files);
+            if (fileNames.length === 0) { outputDiv.style.display = 'none'; return; }
+            outputDiv.style.display = 'block';
+            fileCountSpan.textContent = `${fileNames.length} fichier(s)`;
+            let html = '';
+            fileNames.forEach(name => {
+                const content = files[name];
+                const preview = content.length > 120 ? content.substring(0, 120) + '...' : content;
+                html += `<div><strong>📄 ${name}</strong><span style="color:#3f5a7a; font-size:12px; display:block; padding-left:8px; white-space:pre-wrap; overflow-x:auto;">${preview}</span></div>`;
+            });
+            fileListDiv.innerHTML = html;
+            generatedFiles = files;
+            downloadBtn.disabled = false;
+        }
+
+        function downloadZip() {
+            if (Object.keys(generatedFiles).length === 0) { alert('Générez d\'abord.'); return; }
+            const zip = new JSZip();
+            for (const [name, content] of Object.entries(generatedFiles)) zip.file(name, content);
+            zip.generateAsync({ type: 'blob' }).then(blob => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'cluster-config-avec-simulation.zip';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            });
+        }
+
+        // --- ÉVÉNEMENTS ---
+        generateBtn.addEventListener('click', function() {
+            const files = generateConfigs();
+            updateUI(files);
+        });
+        downloadBtn.addEventListener('click', downloadZip);
+
+        document.getElementById('enableLb').addEventListener('change', function(e) {
+            document.getElementById('lbRangeGroup').style.display = this.checked ? 'block' : 'none';
+            renderDiagram();
+        });
+
+        // Mise à jour du diagramme à chaque changement
+        const formElements = document.querySelectorAll('#configForm select, #configForm input');
+        formElements.forEach(el => {
+            el.addEventListener('change', renderDiagram);
+            el.addEventListener('input', renderDiagram);
+        });
+
+        // --- INITIALISATION ---
+        window.addEventListener('DOMContentLoaded', function() {
+            renderDiagram();
+            const files = generateConfigs();
+            updateUI(files);
+        });
+    })();
+</script>
+</body>
+</html>
