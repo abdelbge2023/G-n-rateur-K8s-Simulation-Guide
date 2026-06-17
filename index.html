@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K8s Lab – Générateur & Cours Complet</title>
+    <title>K8s Lab – Formation complète (Pods & Services)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
-        /* ===== STYLES ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fc; display: flex; justify-content: center; padding: 30px 20px; }
         .container { max-width: 1150px; width: 100%; background: white; padding: 30px 35px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,20,50,0.15); }
@@ -23,6 +22,7 @@
         .course-section { margin-bottom: 30px; }
         .course-section h2 { color: #1a2b4c; font-size: 22px; margin-top: 35px; margin-bottom: 10px; border-left: 4px solid #2a7de1; padding-left: 12px; }
         .course-section h3 { color: #1a2b4c; font-size: 18px; margin-top: 25px; margin-bottom: 8px; }
+        .course-section h4 { color: #1a2b4c; font-size: 16px; margin-top: 18px; margin-bottom: 5px; }
         .course-section p, .course-section li { color: #1f334f; line-height: 1.7; font-size: 15px; }
         .course-section ul { padding-left: 25px; margin: 10px 0; }
         .course-section code { background: #eef3fa; padding: 2px 8px; border-radius: 6px; font-size: 14px; color: #1a2b4c; }
@@ -38,6 +38,11 @@
         .course-section .step { font-weight: 600; color: #1a2b4c; margin: 12px 0 4px 0; }
         .course-section .comment { color: #6a8a9e; font-style: italic; }
         .course-section .sortie-attendue { background: #eaf5ea; border-left: 4px solid #2d862d; padding: 10px; margin: 8px 0; font-family: monospace; font-size: 13px; }
+        .course-section .table-wrap { overflow-x: auto; margin: 15px 0; }
+        .course-section table { border-collapse: collapse; width: 100%; font-size: 14px; }
+        .course-section table th { background: #1a2b4c; color: white; padding: 8px 12px; text-align: left; }
+        .course-section table td { border: 1px solid #d6dfeb; padding: 8px 12px; vertical-align: top; }
+        .course-section table tr:nth-child(even) { background: #f8faff; }
         @media (max-width: 700px) { .course-section .card-grid { grid-template-columns: 1fr; } .tab-btn { padding: 10px 16px; font-size: 14px; } }
 
         .simulation-card { background: #f0f7ff; border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 2px solid #d4e2f5; }
@@ -65,16 +70,17 @@
         .helper { font-size: 12px; color: #6e7f99; margin-top: 4px; }
         .footer-note { margin-top: 30px; text-align: center; color: #7a8aa5; font-size: 13px; border-top: 1px solid #dce5ef; padding-top: 20px; }
         @media (max-width: 650px) { .form-grid { grid-template-columns: 1fr; } .container { padding: 20px; } }
+        .badge-pdf { background: #7f3b9e; color: white; padding: 2px 12px; border-radius: 30px; font-size: 11px; font-weight: 600; display: inline-block; margin-right: 6px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>📘 K8s Lab – Générateur & Cours Pratique</h1>
-    <p class="sub">Choisissez vos options, visualisez l’architecture, générez les fichiers .yml et apprenez avec des exemples concrets commentés.</p>
+    <h1>📘 K8s Lab – Formation Kubernetes (Pods & Services)</h1>
+    <p class="sub">Choisissez vos options, visualisez l’architecture, générez les fichiers .yml et apprenez avec un cours complet intégrant le PDF de formation.</p>
 
     <div class="tabs">
         <button class="tab-btn active" data-tab="generator">⚙️ Générateur</button>
-        <button class="tab-btn" data-tab="course">📖 Cours + Exemples Pratiques</button>
+        <button class="tab-btn" data-tab="course">📖 Cours (Pods & Services)</button>
     </div>
 
     <!-- ================= TAB 1 : GÉNÉRATEUR ================= -->
@@ -109,382 +115,417 @@
         </div>
     </div>
 
-    <!-- ================= TAB 2 : COURS COMPLET (ENRICHI) ================= -->
+    <!-- ================= TAB 2 : COURS COMPLET (INTÉGRATION DU PDF) ================= -->
     <div id="course" class="tab-content">
         <div class="course-section">
 
-            <!-- ===== NOUVEAU : INTRODUCTION GÉNÉRALE ===== -->
+            <!-- ===== SECTION : INTRODUCTION GÉNÉRALE (PDF page 1-2) ===== -->
             <h2>📖 Introduction à Kubernetes</h2>
             <p>
                 <strong>Kubernetes</strong> (souvent abrégé K8s) est un orchestrateurd de conteneurs open-source, initialement développé par Google. 
                 Il permet d’automatiser le déploiement, la mise à l’échelle et la gestion d’applications conteneurisées.
             </p>
             <div class="def">
-                <strong>Pourquoi utiliser Kubernetes ?</strong><br>
-                - <strong>Résilience</strong> : redémarre automatiquement les conteneurs défaillants, remplace les nœuds défectueux.<br>
-                - <strong>Scalabilité</strong> : augmente ou diminue le nombre de réplicas en fonction de la charge (autoscaling).<br>
-                - <strong>Portabilité</strong> : fonctionne sur n’importe quel cloud (AWS, GCP, Azure) ou en on‑premise.<br>
-                - <strong>Déploiements déclaratifs</strong> : vous décrivez l’état souhaité (ex : 3 réplicas de Nginx) et Kubernetes s’assure que cet état est atteint.
+                <strong>Objectifs de la formation :</strong><br>
+                - Comprendre les cas d'utilisation des Pods.<br>
+                - Appliquer des exemples d'architectures.<br>
+                - Définir le rôle des services.
             </div>
-            <p>
-                <strong>Comment ça marche ?</strong> Un cluster Kubernetes est composé d’un <strong>plan de contrôle</strong> (API Server, etcd, Scheduler, Controller Manager) et de <strong>nœuds de travail (workers)</strong> qui exécutent les conteneurs.
-            </p>
 
-            <!-- ===== NOUVEAU : FONCTIONNEMENT DU RÉSEAU ===== -->
+            <!-- ===== SECTION : RÉSEAU (PDF non présent mais complémentaire) ===== -->
             <h2>🌐 Comment fonctionne le réseau dans Kubernetes</h2>
-            <p>
-                Le réseau est un des aspects les plus importants (et parfois complexes) de Kubernetes. Voici les principes fondamentaux :
-            </p>
             <ul>
-                <li><strong>Chaque Pod reçoit une adresse IP unique</strong> (et non chaque conteneur). Les Pods peuvent communiquer entre eux sans NAT (Network Address Translation).</li>
-                <li><strong>Le <code>kube-proxy</code></strong> est un composant qui gère les règles de réacheminement (iptables, IPVS) sur chaque nœud. Il assure que les requêtes vers un Service (ClusterIP) soient distribuées aux Pods correspondants (load‑balancing interne).</li>
-                <li><strong>Le CNI (Container Network Interface)</strong> est le plugin qui attribue les adresses IP aux Pods et gère la connectivité entre les nœuds. Les CNI populaires : Calico (supporte les Network Policies), Flannel (simple), Cilium (eBPF), Weave.</li>
-                <li><strong>Les Services</strong> créent une abstraction stable (ClusterIP) par‑dessus les Pods éphémères. Ils peuvent être de type <code>ClusterIP</code> (interne), <code>NodePort</code> (exposé sur un port de chaque nœud) ou <code>LoadBalancer</code> (IP externe provisionnée par MetalLB ou le cloud).</li>
-                <li><strong>L’Ingress</strong> apporte une couche supplémentaire de routage HTTP/HTTPS, permettant de rediriger le trafic vers différents Services selon le nom d’hôte ou le chemin.</li>
+                <li><strong>Chaque Pod reçoit une adresse IP unique</strong> (et non chaque conteneur). Les Pods peuvent communiquer entre eux sans NAT.</li>
+                <li><strong>Le <code>kube-proxy</code></strong> gère les règles de réacheminement (iptables, IPVS) pour distribuer le trafic vers les Pods.</li>
+                <li><strong>Le CNI (Container Network Interface)</strong> attribue les adresses IP et gère la connectivité entre les nœuds.</li>
+                <li><strong>Les Services</strong> créent une abstraction stable (ClusterIP, NodePort, LoadBalancer).</li>
+                <li><strong>L’Ingress</strong> apporte une couche de routage HTTP/HTTPS supplémentaire.</li>
             </ul>
-            <div class="def">
-                <strong>Résumé du flux réseau :</strong> Utilisateur → LoadBalancer (externe) → Ingress (optionnel) → Service (ClusterIP) → Pod.
-            </div>
+            <div class="def"><strong>Résumé du flux réseau :</strong> Utilisateur → LoadBalancer (externe) → Ingress (optionnel) → Service (ClusterIP) → Pod.</div>
 
-            <!-- ===== CONCEPTS CLÉS (conservés et enrichis) ===== -->
-            <h2>🧩 Concepts clés</h2>
-            <div class="card-grid">
-                <div class="card">
-                    <h4><span class="badge-cours">Pod</span></h4>
-                    <p><strong>Définition :</strong> Un Pod est le plus petit objet déployable. Il regroupe un ou plusieurs conteneurs qui partagent le même réseau (une seule IP) et le même espace de stockage (volumes).</p>
-                    <p><em>Exemple YAML :</em></p>
-                    <pre>apiVersion: v1
+            <!-- ===== SECTION : PODS ET LEURS CARACTÉRISTIQUES (PDF pages 3-6) ===== -->
+            <h2>🧩 Les Pods et leurs caractéristiques</h2>
+            <p><span class="badge-pdf">PDF pages 3-6</span></p>
+            <div class="def">
+                <strong>Qu'est-ce qu'un Pod ?</strong><br>
+                Un Pod est le plus petit objet déployable dans Kubernetes. C'est un groupe d'un ou plusieurs conteneurs qui partagent :
+                <ul>
+                    <li>Un contexte réseau (une seule adresse IP).</li>
+                    <li>Un espace de noms Linux (network, UTS, IPC, PID).</li>
+                    <li>Des <strong>cgroups</strong> pour limiter, isoler et mesurer l'utilisation des ressources.</li>
+                    <li>Des volumes partagés (stockage).</li>
+                </ul>
+            </div>
+            <p><strong>Deux modèles d'utilisation :</strong></p>
+            <ul>
+                <li><strong>Pod avec un seul conteneur</strong> : le cas le plus courant. Le Pod est une « enveloppe » autour du conteneur.</li>
+                <li><strong>Pod avec plusieurs conteneurs</strong> : les conteneurs doivent travailler ensemble et partager des ressources (ex: serveur LAMP, groupe DNS/NTP/DHCP).</li>
+            </ul>
+
+            <!-- ===== SECTION : CYCLE DE VIE DES PODS (PDF pages 7-12) ===== -->
+            <h3>🔄 Cycle de vie des Pods</h3>
+            <p><span class="badge-pdf">PDF pages 7-12</span></p>
+            <p>L'objet <code>PodStatus</code> (champ <code>status</code>) reflète l'état du Pod. Voici les différentes phases :</p>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Valeur</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>Pending</code></td><td>Le Pod a été accepté par Kubernetes, mais un ou plusieurs conteneurs ne sont pas totalement créés (téléchargement des images, configuration réseau...).</td></tr>
+                        <tr><td><code>Running</code></td><td>Le Pod a été affecté à un nœud, tous les conteneurs ont été créés. Au moins un conteneur est en cours d'exécution.</td></tr>
+                        <tr><td><code>Succeeded</code></td><td>Tous les conteneurs du Pod ont terminé avec succès et ne seront pas redémarrés (cas des Jobs).</td></tr>
+                        <tr><td><code>Failed</code></td><td>Tous les conteneurs ont terminé, et au moins un a terminé en échec (code non nul ou arrêté par le système).</td></tr>
+                        <tr><td><code>Unknown</code></td><td>L'état du Pod ne peut pas être obtenu (généralement en cas d'erreur de communication avec l'hôte).</td></tr>
+                        <tr><td><code>Terminating</code></td><td>Le Pod est en train de terminer son exécution (grace period).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p><strong>Consulter le cycle de vie :</strong></p>
+            <pre># Exporter en JSON/YAML
+kubectl get pod -n &lt;namespace&gt; &lt;nom-pod&gt; -o=jsonpath='{.status.conditions}' | jq
+
+# Variables disponibles : lastProbeTime, lastTransitionTime, message, raison, Status</pre>
+
+            <!-- ===== SECTION : SONDES (PROBES) (PDF pages 9-15) ===== -->
+            <h3>🩺 Les sondes (Probes)</h3>
+            <p><span class="badge-pdf">PDF pages 9-15</span></p>
+            <p>Le <strong>kubelet</strong> contrôle l'état des conteneurs via des <em>handlers</em>. Trois types de sondes :</p>
+            <ul>
+                <li><strong>ExecAction</strong> : exécute une commande dans le conteneur. Succès si code retour = 0.</li>
+                <li><strong>TCPSocketAction</strong> : teste la connexion sur l'IP:Port du conteneur.</li>
+                <li><strong>HTTPGetAction</strong> : effectue une requête HTTP. Succès si statut 200.</li>
+            </ul>
+            <p><strong>Réponse du kubelet :</strong></p>
+            <ul>
+                <li><code>Success</code> → le conteneur a réussi le diagnostic.</li>
+                <li><code>Failure</code> → le conteneur a échoué.</li>
+                <li><code>Unknown</code> → l'exécution a échoué, aucune action n'est prise.</li>
+            </ul>
+            <p><strong>Les trois sondes principales :</strong></p>
+            <ul>
+                <li><code>livenessProbe</code> : vérifie si le conteneur est toujours en vie. Si échec, le conteneur est tué et redémarré selon la politique.</li>
+                <li><code>readinessProbe</code> : indique si le conteneur est prêt à recevoir du trafic. Si échec, son adresse IP est retirée des endpoints du Service.</li>
+                <li><code>startupProbe</code> : indique si le conteneur a démarré. Les autres sondes sont désactivées jusqu'à son succès.</li>
+            </ul>
+            <div class="exemple-box">
+                <div class="titre-exemple">Exemple de livenessProbe avec <code>exec</code></div>
+                <pre>apiVersion: v1
 kind: Pod
 metadata:
-  name: mon-pod
-  labels:
-    app: nginx
+  name: pod-avec-probe
 spec:
   containers:
-  - name: nginx
-    image: nginx:latest
-    ports:
-    - containerPort: 80</pre>
-                </div>
-                <div class="card">
-                    <h4><span class="badge-cours">Service</span></h4>
-                    <p><strong>Définition :</strong> Un Service expose un ensemble de Pods (sélectionnés par des labels) via une adresse IP et un port stables. Types : <code>ClusterIP</code> (interne), <code>NodePort</code> (externe sur un port statique), <code>LoadBalancer</code> (IP externe).</p>
-                    <pre>apiVersion: v1
+  - name: app
+    image: nginx
+    livenessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/healthy
+      initialDelaySeconds: 5
+      periodSeconds: 5</pre>
+                <span class="comment">💡 Le Pod sera redémarré si le fichier <code>/tmp/healthy</code> n'existe pas.</span>
+            </div>
+
+            <!-- ===== SECTION : INITCONTAINERS (PDF pages 17-27) ===== -->
+            <h3>⚙️ Les InitContainers</h3>
+            <p><span class="badge-pdf">PDF pages 17-27</span></p>
+            <div class="def">
+                <strong>Définition :</strong><br>
+                Un <strong>InitContainer</strong> est un conteneur qui s'exécute <strong>avant</strong> les conteneurs principaux du Pod. Il est conçu pour réaliser des tâches d'initialisation (attendre qu'un service soit prêt, télécharger des données, configurer l'environnement).<br>
+                <strong>Caractéristiques :</strong>
+                <ul>
+                    <li>Ils s'exécutent en série (le suivant attend la fin du précédent).</li>
+                    <li>Ils doivent se terminer avec succès pour que le Pod passe à l'étape suivante.</li>
+                    <li>En cas d'échec, le kubelet les redémarre selon la politique <code>restartPolicy</code> (Always ou Never).</li>
+                    <li>Le statut est consultable via <code>.status.initContainerStatuses</code>.</li>
+                </ul>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">Exemple complet : Pod avec 2 InitContainers attendant des services DNS</div>
+                <pre>apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app.kubernetes.io/name: MyApp
+spec:
+  containers:
+  - name: myapp-container
+    image: busybox:1.28
+    command: ['sh', '-c', 'echo The app is running! && sleep 3600']
+  initContainers:
+  - name: init-myservice
+    image: busybox:1.28
+    command: ['sh', '-c', 'until nslookup myservice; do echo waiting for myservice; sleep 2; done;']
+  - name: init-mydb
+    image: busybox:1.28
+    command: ['sh', '-c', 'until nslookup mydb; do echo waiting for mydb; sleep 2; done;']</pre>
+                <span class="comment">💡 Les InitContainers attendent que les Services <code>myservice</code> et <code>mydb</code> soient résolus dans le DNS du cluster (CoreDNS).</span>
+
+                <div class="step">🔍 Étapes de déblocage :</div>
+                <pre># 1. Déployer le Pod (il reste en Pending)
+kubectl apply -f 04-initContainer.yml
+
+# 2. Vérifier les logs du premier InitContainer
+kubectl logs myapp-pod -c init-myservice
+# Sortie : waiting for myservice - nslookup: can't resolve 'myservice.kubernetes-tp.svc.cluster.local'
+
+# 3. Créer le service myservice
+apiVersion: v1
 kind: Service
 metadata:
-  name: mon-service
+  name: myservice
 spec:
-  selector:
-    app: nginx
   ports:
-  - port: 80
-    targetPort: 80
-  type: ClusterIP</pre>
-                </div>
-                <div class="card">
-                    <h4><span class="badge-cours">Ingress</span></h4>
-                    <p><strong>Définition :</strong> Un Ingress est un objet qui expose des services HTTP/HTTPS à l'extérieur du cluster en utilisant un nom d'hôte ou un chemin d'URL. Il agit comme un routeur (reverse proxy).</p>
-                    <pre>apiVersion: networking.k8s.io/v1
-kind: Ingress
+  - protocol: TCP
+    port: 80
+    targetPort: 9376
+# kubectl apply -f myservice.yml
+
+# 4. Vérifier que le premier InitContainer est débloqué
+kubectl logs myapp-pod -c init-myservice
+# Sortie : Address 1: 10.109.138.31 myservice.kubernetes-tp.svc.cluster.local
+
+# 5. Créer le service mydb (même principe)
+
+# 6. Vérifier que le conteneur principal démarre
+kubectl logs myapp-pod -c myapp-container
+# Sortie : The app is running!</pre>
+                <span class="comment">💡 Les InitContainers sont bloquants : le conteneur principal ne démarre que lorsque tous les InitContainers ont réussi.</span>
+            </div>
+
+            <!-- ===== SECTION : SIDECAR CONTAINERS (PDF pages 28-36) ===== -->
+            <h3>🛠️ Les SideCar Containers</h3>
+            <p><span class="badge-pdf">PDF pages 28-36</span></p>
+            <div class="def">
+                <strong>Définition :</strong><br>
+                Un <strong>SideCar</strong> est un conteneur secondaire qui s'exécute aux côtés du conteneur principal dans le même Pod. Il étend ses fonctionnalités sans en altérer le fonctionnement.<br>
+                <strong>Cas d'usage :</strong> journalisation (log shipping), monitoring, proxy HTTPS, synchronisation de données, sécurité.<br>
+                <strong>Caractéristiques :</strong>
+                <ul>
+                    <li>Depuis Kubernetes 1.29, les SideCars sont supportés nativement via <code>restartPolicy: Always</code> sur un InitContainer.</li>
+                    <li>Ils démarrent séquentiellement (en tant qu'InitContainer) mais continuent de tourner après le démarrage du Pod.</li>
+                    <li>Ils peuvent avoir leur propre <code>readinessProbe</code> qui affecte l'état global du Pod.</li>
+                </ul>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">Exemple : Log Shipper (SideCar qui collecte les logs)</div>
+                <pre>apiVersion: v1
+kind: Pod
 metadata:
-  name: mon-ingress
+  name: myapp-logs
 spec:
-  rules:
-  - host: monapp.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: mon-service
-            port:
-              number: 80</pre>
-                </div>
-                <div class="card">
-                    <h4><span class="badge-cours">Deployment</span></h4>
-                    <p><strong>Définition :</strong> Un Deployment est un contrôleur qui gère un ensemble de Pods (via un ReplicaSet) en offrant des mises à jour déclaratives (rolling update, rollback, scaling).</p>
-                    <pre>apiVersion: apps/v1
+  containers:
+  - name: myapp
+    image: busybox
+    command: ['sh', '-c', 'while true; do echo "App log $(date)" >> /var/log/app.log; sleep 2; done']
+    volumeMounts:
+    - name: shared-logs
+      mountPath: /var/log
+  - name: logshipper
+    image: busybox
+    command: ['sh', '-c', 'tail -f /var/log/app.log']
+    volumeMounts:
+    - name: shared-logs
+      mountPath: /var/log
+  volumes:
+  - name: shared-logs
+    emptyDir: {}</pre>
+                <span class="comment">💡 Le conteneur <code>logshipper</code> lit en temps réel les logs écrits par <code>myapp</code> via un volume partagé (<code>emptyDir</code>).</span>
+            </div>
+            <p><strong>Autres modèles de SideCar :</strong></p>
+            <ul>
+                <li><strong>Proxy HTTPS</strong> : un conteneur Nginx en face d'un serveur Apache pour gérer le TLS.</li>
+                <li><strong>Synchronisation dynamique</strong> : un conteneur qui surveille un dépôt Git et recharge l'application.</li>
+                <li><strong>Adaptateur (Adapter)</strong> : convertit un flux JSON en XML ou réorganise des logs pour un système de monitoring externe.</li>
+                <li><strong>Ambassador</strong> : proxy inverse qui permet à l'application de se connecter à différentes bases de données (dev, staging, prod) via une interface locale.</li>
+            </ul>
+
+            <!-- ===== SECTION : AUTRES TYPES DE CONTENEURS (PDF pages 37-41) ===== -->
+            <h3>🧩 Autres types de conteneurs</h3>
+            <p><span class="badge-pdf">PDF pages 37-41</span></p>
+            <ul>
+                <li><strong>Ephemeral Containers</strong> : conteneurs temporaires ajoutés dans un Pod en cours d'exécution pour du débogage ou des diagnostics (ex: <code>kubectl debug</code>).</li>
+                <li><strong>Ambassador</strong> : proxy inverse local qui agit comme mandataire vers différents environnements (ex: base de données en dev/prod).</li>
+                <li><strong>Adapter</strong> : convertit ou réorganise des données (JSON → XML, logs vers un format standard).</li>
+            </ul>
+
+            <!-- ===== SECTION : EXEMPLE PRATIQUE : APACHE + NGINX SIDECAR (PDF pages 43-48) ===== -->
+            <h2>🔧 Exemple pratique : Apache + Nginx en SideCar (proxy HTTPS)</h2>
+            <p><span class="badge-pdf">PDF pages 43-48</span></p>
+            <div class="exemple-box">
+                <div class="titre-exemple">🎯 Objectif : Exposer un serveur Apache via un proxy Nginx qui gère le HTTPS.</div>
+
+                <div class="step">📄 Étape 1 : Déploiement Apache seul</div>
+                <pre>apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deploy
+  name: nginx-proxy
+  labels:
+    app: nginx-proxy
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: nginx-proxy
   template:
     metadata:
       labels:
-        app: nginx
+        app: nginx-proxy
     spec:
       containers:
-      - name: nginx
-        image: nginx:1.21</pre>
-                </div>
-                <div class="card">
-                    <h4><span class="badge-cours">ConfigMap</span></h4>
-                    <p><strong>Définition :</strong> Stocke des données de configuration non sensibles (ex : variables d’environnement, fichiers de configuration). Permet de découpler la configuration du code.</p>
-                    <pre>apiVersion: v1
-kind: ConfigMap
+      - name: apache
+        image: ubuntu/apache2
+        ports:
+        - containerPort: 80</pre>
+                <span class="comment">💡 Test : <code>kubectl exec ... -- service apache2 status</code> doit afficher <code>apache2 is running</code>.</span>
+
+                <div class="step">📄 Étape 2 : Génération des certificats et création du Secret</div>
+                <pre># Génération d'une clé privée et d'un certificat auto-signé
+openssl req -newkey rsa:2048 -nodes -keyout nginx.key -x509 -days 365 -out nginx.crt
+
+# Création du Secret dans Kubernetes
+kubectl create secret generic nginx-certs-keys --from-file=./nginx.crt --from-file=./nginx.key
+
+# Vérification
+kubectl describe secrets/nginx-certs-keys</pre>
+
+                <div class="step">📄 Étape 3 : Fichier de configuration Nginx (<code>default.conf</code>)</div>
+                <pre>server {
+    listen 443 ssl;
+    server_name localhost;
+    ssl_certificate /etc/nginx/ssl/nginx.crt;
+    ssl_certificate_key /etc/nginx/ssl/nginx.key;
+    location / {
+        proxy_pass http://localhost:80;
+        proxy_set_header Host $host;
+    }
+}</pre>
+                <span class="comment">💡 Nginx écoute sur le port 443 (HTTPS) et proxy vers Apache qui écoute sur localhost:80.</span>
+
+                <div class="step">📄 Étape 4 : Création du ConfigMap et déploiement du Pod avec SideCar</div>
+                <pre># Création du ConfigMap
+kubectl create configmap nginxconfigmap --from-file=default.conf
+
+# Pod avec Apache + Nginx SideCar
+apiVersion: v1
+kind: Pod
 metadata:
-  name: app-config
-data:
-  APP_ENV: production
-  APP_DEBUG: "false"</pre>
-                </div>
-                <div class="card">
-                    <h4><span class="badge-cours">Secret</span></h4>
-                    <p><strong>Définition :</strong> Similaire à un ConfigMap, mais pour des données sensibles (mots de passe, tokens, clés SSH). Les données sont encodées en base64 et peuvent être chiffrées au repos.</p>
-                    <pre>apiVersion: v1
-kind: Secret
+  name: nginx-proxy
+spec:
+  containers:
+  - name: apache
+    image: ubuntu/apache2
+    ports:
+    - containerPort: 80
+  - name: nginxhttps
+    image: nginx
+    volumeMounts:
+    - name: nginx-config
+      mountPath: /etc/nginx/conf.d
+    - name: nginx-certs
+      mountPath: /etc/nginx/ssl
+    ports:
+    - containerPort: 443
+  volumes:
+  - name: nginx-config
+    configMap:
+      name: nginxconfigmap
+  - name: nginx-certs
+    secret:
+      secretName: nginx-certs-keys</pre>
+                <span class="comment">💡 Les volumes partagés permettent d'injecter la configuration et les certificats dans le conteneur Nginx.</span>
+
+                <div class="step">🔍 Étape 5 : Vérification</div>
+                <pre># Les deux conteneurs doivent être en "Running"
+kubectl get pods
+
+# Test du proxy : récupérer la page Apache via HTTP (port 80) et HTTPS (port 443)
+# Les deux réponses doivent être identiques
+wget http://10.244.1.38 -O /tmp/index1
+wget --no-check-certificate https://10.244.1.38 -O /tmp/index2
+diff /tmp/index1 /tmp/index2   # Ne doit rien retourner</pre>
+
+                <div class="step">🌍 Étape 6 : Exposition du service en LoadBalancer</div>
+                <pre>apiVersion: v1
+kind: Service
 metadata:
-  name: app-secret
-data:
-  password: dXNlcg==    # base64 de "user"</pre>
-                </div>
+  name: nginx-proxy
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 443
+    protocol: TCP
+  selector:
+    app: nginx-proxy
+  externalIPs:
+  - "192.168.1.140"</pre>
+                <span class="comment">💡 Le service expose le port 443 vers l'extérieur via MetalLB ou un cloud provider.</span>
             </div>
 
-            <!-- ===== COMMANDES KUBECTL ===== -->
+            <!-- ===== SECTION : COMMANDES KUBECTL ===== -->
             <h2>🛠️ Commandes kubectl essentielles</h2>
             <div class="exemple-box">
                 <div class="titre-exemple">🔍 <code>kubectl cluster-info</code></div>
                 <p>Affiche l'URL du serveur API.</p>
                 <pre>$ kubectl cluster-info
 Kubernetes control plane is running at https://172.18.0.2:6443</pre>
-                <span class="comment">💡 Vérifie que vous êtes bien connecté au cluster.</span>
             </div>
             <div class="exemple-box">
-                <div class="titre-exemple">📋 <code>kubectl get nodes</code></div>
-                <p>Liste les nœuds avec leur statut.</p>
-                <pre>$ kubectl get nodes
-NAME                 STATUS   ROLES           AGE
-kind-control-plane   Ready    control-plane   5m
-kind-worker          Ready    &lt;none&gt;         5m</pre>
+                <div class="titre-exemple">📋 <code>kubectl get pods</code></div>
+                <p>Liste les Pods dans le namespace courant.</p>
+                <span class="comment">💡 Utilisez <code>-A</code> pour tous les namespaces, <code>-o wide</code> pour plus de détails (IP, nœud).</span>
             </div>
             <div class="exemple-box">
                 <div class="titre-exemple">🔎 <code>kubectl describe pod &lt;nom&gt;</code></div>
-                <p>Détails et événements d'un Pod (indispensable pour le debug).</p>
-                <span class="comment">💡 La section <strong>Events</strong> est précieuse pour comprendre pourquoi un Pod ne démarre pas.</span>
+                <p>Affiche les détails et les événements du Pod (très utile pour le debug).</p>
             </div>
             <div class="exemple-box">
                 <div class="titre-exemple">📄 <code>kubectl apply -f fichier.yml</code></div>
-                <p>Crée ou met à jour des ressources à partir d'un fichier YAML (déclaratif).</p>
+                <p>Crée ou met à jour des ressources à partir d'un fichier YAML.</p>
             </div>
             <div class="exemple-box">
-                <div class="titre-exemple">📜 <code>kubectl logs &lt;pod&gt;</code></div>
-                <p>Affiche les logs du conteneur.</p>
+                <div class="titre-exemple">📜 <code>kubectl logs &lt;pod&gt; -c &lt;conteneur&gt;</code></div>
+                <p>Affiche les logs d'un conteneur spécifique.</p>
             </div>
             <div class="exemple-box">
                 <div class="titre-exemple">🖥️ <code>kubectl exec -it &lt;pod&gt; -- /bin/bash</code></div>
-                <p>Ouvre un shell interactif dans le conteneur pour diagnostiquer.</p>
+                <p>Ouvre un shell interactif dans le conteneur.</p>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">🔐 <code>kubectl create secret generic &lt;nom&gt; --from-file=...</code></div>
+                <p>Crée un Secret à partir de fichiers locaux.</p>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">📦 <code>kubectl create configmap &lt;nom&gt; --from-file=...</code></div>
+                <p>Crée un ConfigMap à partir de fichiers.</p>
             </div>
 
-            <!-- ===== SÉCURITÉ ===== -->
+            <!-- ===== SECTION : SÉCURITÉ ===== -->
             <h2>🔒 Sécurité & Administration (bonnes pratiques)</h2>
             <div class="def-secu">
-                <strong>Objectif :</strong> Garantir la confidentialité, l'intégrité et la disponibilité du cluster.
-            </div>
-            <ul>
-                <li><strong>RBAC</strong> (Role-Based Access Control) : définit qui peut faire quoi sur quelles ressources.</li>
-                <li><strong>Network Policies</strong> : isole le trafic entre Pods (ex : seule l'application front-end peut accéder à la base de données).</li>
-                <li><strong>Pod Security Standards</strong> : profils Privileged, Baseline, Restricted.</li>
-                <li><strong>Gestion des Secrets</strong> : chiffrement au repos dans etcd, utilisation d'outils comme External Secrets Operator.</li>
-                <li><strong>Resource Quotas</strong> : limite la consommation CPU/mémoire par namespace.</li>
-                <li><strong>Security Context</strong> : exécute les conteneurs avec un utilisateur non-root et sans capacités Linux superflues.</li>
-                <li><strong>Audit Logs</strong> : enregistre toutes les requêtes vers l'API Server.</li>
-                <li><strong>CIS Benchmarks</strong> : utilisez <code>kube-bench</code> pour auditer votre cluster.</li>
-            </ul>
-
-            <!-- ===== EXEMPLES PRATIQUES DÉTAILLÉS ===== -->
-            <h2>🚀 EXEMPLES PRATIQUES – APPRENDRE EN FAISANT</h2>
-            <p>Chaque exemple est découpé en étapes avec des commandes commentées et la sortie attendue.</p>
-
-            <!-- Exemple 1 : Nginx + LB -->
-            <h3>Exemple 1 : Déployer Nginx avec un service LoadBalancer</h3>
-            <div class="exemple-box">
-                <div class="titre-exemple">🎯 Objectif : Exposer une application Web Nginx à l'extérieur du cluster via une IP publique (ou locale avec MetalLB).</div>
-                <div class="step">📄 Étape 1 : Créer le fichier <code>nginx-lb.yml</code></div>
-                <pre># nginx-lb.yml
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deploy
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:1.21
-        ports:
-        - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-service
-spec:
-  selector:
-    app: nginx
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
-  type: LoadBalancer</pre>
-                <div class="step">🖥️ Étape 2 : Appliquer</div>
-                <pre>kubectl apply -f nginx-lb.yml</pre>
-                <div class="sortie-attendue">deployment.apps/nginx-deploy created
-service/nginx-service created</div>
-                <div class="step">🔍 Étape 3 : Vérifier les Pods</div>
-                <pre>kubectl get pods</pre>
-                <div class="sortie-attendue">NAME                            READY   STATUS    RESTARTS   AGE
-nginx-deploy-7d8f8-5xg7f        1/1     Running   0          30s
-nginx-deploy-7d8f8-6h8g9        1/1     Running   0          30s</div>
-                <div class="step">🌍 Étape 4 : Récupérer l'IP externe</div>
-                <pre>kubectl get svc nginx-service</pre>
-                <div class="sortie-attendue">NAME            TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)
-nginx-service   LoadBalancer   10.96.123.45    192.168.1.240    80:30001/TCP</div>
-                <div class="step">🧪 Étape 5 : Tester</div>
-                <pre>curl http://192.168.1.240</pre>
-                <div class="sortie-attendue">&lt;!DOCTYPE html&gt;... (page Nginx)</div>
-                <div class="step">🗑️ Étape 6 : Nettoyer</div>
-                <pre>kubectl delete -f nginx-lb.yml</pre>
+                <strong>Bonnes pratiques pour les Pods :</strong>
+                <ul>
+                    <li><strong>Utilisez des sondes</strong> (<code>livenessProbe</code>, <code>readinessProbe</code>) pour garantir la résilience.</li>
+                    <li><strong>Utilisez des InitContainers</strong> pour les prérequis (attendre des services, initialiser des fichiers).</li>
+                    <li><strong>Appliquez le principe du moindre privilège</strong> avec <code>securityContext</code> (utilisateur non-root, drop des capacités).</li>
+                    <li><strong>Isoler les environnements</strong> avec des namespaces et des Network Policies.</li>
+                    <li><strong>Surveillez les logs</strong> et définissez des <strong>Resource Quotas</strong> pour éviter les dénis de service.</li>
+                </ul>
             </div>
 
-            <!-- Exemple 2 : ConfigMap -->
-            <h3>Exemple 2 : Utiliser un ConfigMap</h3>
-            <div class="exemple-box">
-                <div class="titre-exemple">🎯 Objectif : Injecter des variables d'environnement via ConfigMap.</div>
-                <div class="step">📄 Étape 1 : ConfigMap</div>
-                <pre># app-config.yml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  APP_ENV: production
-  APP_DEBUG: "false"</pre>
-                <div class="step">📄 Étape 2 : Pod utilisant le ConfigMap</div>
-                <pre>apiVersion: v1
-kind: Pod
-metadata:
-  name: app-pod
-spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["/bin/sh"]
-    args: ["-c", "echo $APP_ENV; sleep 3600"]
-    envFrom:
-    - configMapRef:
-        name: app-config</pre>
-                <div class="step">🖥️ Étape 3 : Appliquer et tester</div>
-                <pre>kubectl apply -f app-config.yml
-kubectl apply -f pod-with-config.yml
-kubectl logs app-pod</pre>
-                <div class="sortie-attendue">production</div>
-            </div>
-
-            <!-- Exemple 3 : Ingress -->
-            <h3>Exemple 3 : Ingress multi-hôtes</h3>
-            <div class="exemple-box">
-                <div class="titre-exemple">🎯 Objectif : Router deux applications sur deux noms de domaine différents.</div>
-                <div class="step">📄 Fichier <code>ingress-example.yml</code></div>
-                <pre>apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: mon-ingress
-spec:
-  rules:
-  - host: app1.mondomaine.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: service-app1
-            port:
-              number: 80
-  - host: app2.mondomaine.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: service-app2
-            port:
-              number: 80</pre>
-                <div class="step">🖥️ Appliquer et vérifier</div>
-                <pre>kubectl apply -f ingress-example.yml
-kubectl get ingress</pre>
-                <div class="sortie-attendue">NAME          CLASS    HOSTS                                ADDRESS
-mon-ingress   &lt;none&gt;   app1.mondomaine.com,app2.mondomaine.com   192.168.1.240</div>
-            </div>
-
-            <!-- Exemple 4 : PVC -->
-            <h3>Exemple 4 : Stockage persistant (PVC)</h3>
-            <div class="exemple-box">
-                <div class="titre-exemple">🎯 Objectif : Conserver des données même après redémarrage du Pod.</div>
-                <div class="step">📄 PVC et Pod</div>
-                <pre># pvc.yml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mon-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
----
-# pod-avec-stockage.yml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: pod-avec-stockage
-spec:
-  containers:
-  - name: nginx
-    image: nginx
-    volumeMounts:
-    - name: stockage
-      mountPath: /usr/share/nginx/html
-  volumes:
-  - name: stockage
-    persistentVolumeClaim:
-      claimName: mon-pvc</pre>
-                <div class="step">🖥️ Appliquer et tester la persistance</div>
-                <pre>kubectl apply -f pvc.yml
-kubectl apply -f pod-avec-stockage.yml
-kubectl exec pod-avec-stockage -- sh -c "echo 'Persistant' > /usr/share/nginx/html/test.html"
-kubectl delete pod pod-avec-stockage
-kubectl apply -f pod-avec-stockage.yml
-kubectl exec pod-avec-stockage -- cat /usr/share/nginx/html/test.html</pre>
-                <div class="sortie-attendue">Persistant</div>
-                <span class="comment">🎉 Les données sont bien persistantes !</span>
-            </div>
-
+            <!-- ===== SECTION : RESSOURCES ===== -->
             <h2>🔗 Ressources externes</h2>
             <ul>
-                <li><a href="https://kubernetes.io/fr/docs/home/" target="_blank">Documentation officielle</a></li>
-                <li><a href="https://github.com/aquasecurity/kube-bench" target="_blank">kube-bench – CIS Benchmark</a></li>
-                <li><a href="https://kubernetes.io/fr/docs/concepts/security/" target="_blank">Sécurité Kubernetes</a></li>
+                <li><a href="https://kubernetes.io/fr/docs/concepts/workloads/pods/" target="_blank">Documentation officielle – Pods</a></li>
+                <li><a href="https://kubernetes.io/fr/docs/concepts/workloads/pods/init-containers/" target="_blank">InitContainers</a></li>
+                <li><a href="https://kubernetes.io/fr/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" target="_blank">Sondes (liveness, readiness, startup)</a></li>
+                <li><a href="https://kubernetes.io/fr/docs/concepts/services-networking/service/" target="_blank">Services</a></li>
             </ul>
         </div>
     </div>
 
-    <div class="footer-note">K8s Lab – Apprentissage par la pratique · Exemples commentés pas-à-pas.</div>
+    <div class="footer-note">K8s Lab – Formation complète · Pods, Services, InitContainers, SideCars, Probes.</div>
 </div>
 
 <script>
@@ -661,7 +702,7 @@ volumeBindingMode: WaitForFirstConsumer`;
             return lines.join('\n');
         }
 
-        // ==== GUIDE TÉLÉCHARGÉ (commandes commentées) ====
+        // ==== GUIDE TÉLÉCHARGÉ ====
         function generateFullGuide(opts) {
             const { distro, cni, workers, masters, enableLb, lbRange, enableIngress, enableStorage, enableMonitoring, enableDashboard } = opts;
             let guide = `================================================================================
