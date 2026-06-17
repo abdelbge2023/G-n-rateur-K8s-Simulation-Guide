@@ -216,8 +216,8 @@ spec:
                 <span class="comment">💡 Le Pod sera redémarré si le fichier <code>/tmp/healthy</code> n'existe pas.</span>
             </div>
 
-            <!-- ===== INITCONTAINERS ===== -->
-            <h3>⚙️ Les InitContainers</h3>
+            <!-- ===== INITCONTAINERS AVEC LE FICHIER 04a ===== -->
+            <h3>⚙️ Les InitContainers – Exemple concret avec <code>04a_initContainer.yml</code></h3>
             <div class="def">
                 <strong>Définition :</strong><br>
                 Un <strong>InitContainer</strong> est un conteneur qui s'exécute <strong>avant</strong> les conteneurs principaux du Pod. Il est conçu pour réaliser des tâches d'initialisation (attendre qu'un service soit prêt, télécharger des données, configurer l'environnement).<br>
@@ -230,7 +230,7 @@ spec:
                 </ul>
             </div>
             <div class="exemple-box">
-                <div class="titre-exemple">Exemple : Pod avec 2 InitContainers attendant des services DNS</div>
+                <div class="titre-exemple">📄 Fichier <code>04a_initContainer.yml</code> – Pod avec 2 InitContainers</div>
                 <pre>apiVersion: v1
 kind: Pod
 metadata:
@@ -245,14 +245,15 @@ spec:
   initContainers:
   - name: init-myservice
     image: busybox:1.28
-    command: ['sh', '-c', 'until nslookup myservice; do echo waiting for myservice; sleep 2; done;']
+    command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
   - name: init-mydb
     image: busybox:1.28
-    command: ['sh', '-c', 'until nslookup mydb; do echo waiting for mydb; sleep 2; done;']</pre>
-                <span class="comment">💡 Les InitContainers attendent que les Services <code>myservice</code> et <code>mydb</code> soient résolus dans le DNS du cluster.</span>
+    command: ['sh', '-c', "until nslookup mydb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for mydb; sleep 2; done"]</pre>
+                <span class="comment">💡 Les InitContainers utilisent <code>nslookup</code> pour résoudre les services DNS. La commande inclut le namespace courant grâce à <code>$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)</code>.</span>
+
                 <div class="step">🔍 Étapes de déblocage :</div>
                 <pre># 1. Déployer le Pod
-kubectl apply -f 04-initContainer.yml
+kubectl apply -f 04a_initContainer.yml
 
 # 2. Vérifier les logs du premier InitContainer
 kubectl logs myapp-pod -c init-myservice
@@ -279,10 +280,11 @@ kubectl logs myapp-pod -c init-myservice
 # 6. Vérifier que le conteneur principal démarre
 kubectl logs myapp-pod -c myapp-container
 # Sortie : The app is running!</pre>
+                <span class="comment">💡 Les InitContainers sont bloquants : le conteneur principal ne démarre que lorsque tous les InitContainers ont réussi.</span>
             </div>
 
-            <!-- ===== SIDECARS ===== -->
-            <h3>🛠️ Les SideCar Containers</h3>
+            <!-- ===== SIDECARS AVEC 04b_SideCar01.yml ET 04b_SideCar02.yml ===== -->
+            <h3>🛠️ Les SideCar Containers – Exemples concrets</h3>
             <div class="def">
                 <strong>Définition :</strong><br>
                 Un <strong>SideCar</strong> est un conteneur secondaire qui s'exécute aux côtés du conteneur principal dans le même Pod. Il étend ses fonctionnalités sans en altérer le fonctionnement.<br>
@@ -294,46 +296,93 @@ kubectl logs myapp-pod -c myapp-container
                     <li>Ils peuvent avoir leur propre <code>readinessProbe</code> affectant l'état global du Pod.</li>
                 </ul>
             </div>
+
+            <!-- SideCar 01 : Deployment -->
             <div class="exemple-box">
-                <div class="titre-exemple">Exemple : Log Shipper (SideCar qui collecte les logs)</div>
-                <pre>apiVersion: v1
-kind: Pod
+                <div class="titre-exemple">📄 <code>04b_SideCar01.yml</code> – Log Shipper avec <strong>Deployment</strong></div>
+                <pre>apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: myapp-logs
+  name: myapp
+  labels:
+    app: myapp
 spec:
-  containers:
-  - name: myapp
-    image: busybox
-    command: ['sh', '-c', 'while true; do echo "App log $(date)" >> /var/log/app.log; sleep 2; done']
-    volumeMounts:
-    - name: shared-logs
-      mountPath: /var/log
-  - name: logshipper
-    image: busybox
-    command: ['sh', '-c', 'tail -f /var/log/app.log']
-    volumeMounts:
-    - name: shared-logs
-      mountPath: /var/log
-  volumes:
-  - name: shared-logs
-    emptyDir: {}</pre>
-                <span class="comment">💡 Le conteneur <code>logshipper</code> lit en temps réel les logs écrits par <code>myapp</code> via un volume partagé.</span>
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: alpine:latest
+          command: ['sh', '-c', 'while true; do echo "logging "`date` >> /opt/logs.txt; sleep 5; done']
+          volumeMounts:
+            - name: data
+              mountPath: /opt
+      initContainers:
+        - name: logshipper
+          image: alpine:latest
+          restartPolicy: Always   # 👈 C'est ce qui en fait un SideCar !
+          command: ['sh', '-c', 'tail -F /opt/logs.txt; echo "???"'] # -F = --follow=name --retry
+          volumeMounts:
+            - name: data
+              mountPath: /opt
+      volumes:
+        - name: data
+          emptyDir: {}</pre>
+                <span class="comment">💡 Le conteneur <code>logshipper</code> (SideCar) utilise <code>restartPolicy: Always</code> pour rester actif en permanence. Il lit en continu (<code>tail -F</code>) les logs écrits par <code>myapp</code> via le volume partagé <code>emptyDir</code>.</span>
+                <div class="step">🖥️ Test :</div>
+                <pre>kubectl apply -f 04b_SideCar01.yml
+# Vérifier que le SideCar redémarre si la commande échoue
+kubectl get pods
+kubectl logs myapp-xxx -c logshipper   # Affiche les logs en temps réel</pre>
             </div>
-            <p><strong>Autres modèles de SideCar :</strong> Proxy HTTPS, synchronisation dynamique, Adaptateur, Ambassador.</p>
 
-            <!-- ===== AUTRES TYPES ===== -->
-            <h3>🧩 Autres types de conteneurs</h3>
-            <ul>
-                <li><strong>Ephemeral Containers</strong> : conteneurs temporaires pour débogage (ex: <code>kubectl debug</code>).</li>
-                <li><strong>Ambassador</strong> : proxy inverse local vers différents environnements.</li>
-                <li><strong>Adapter</strong> : convertit ou réorganise des données (JSON → XML, logs formatés).</li>
-            </ul>
-
-            <!-- ===== EXEMPLE DU PDF : APACHE + NGINX SIDECAR ===== -->
-            <h2>🔧 Exemple pratique : Apache + Nginx en SideCar (proxy HTTPS)</h2>
+            <!-- SideCar 02 : Job -->
             <div class="exemple-box">
-                <div class="titre-exemple">🎯 Objectif : Exposer un serveur Apache via un proxy Nginx qui gère le HTTPS.</div>
-                <div class="step">📄 Étape 1 : Déploiement Apache seul</div>
+                <div class="titre-exemple">📄 <code>04b_SideCar02.yml</code> – Log Shipper avec un <strong>Job</strong> (tâche unique)</div>
+                <pre>apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myjob
+spec:
+  template:
+    spec:
+      containers:
+        - name: myjob
+          image: alpine:latest
+          command: ['sh', '-c', 'echo "logging" > /opt/logs.txt']
+          volumeMounts:
+            - name: data
+              mountPath: /opt
+      initContainers:
+        - name: logshipper
+          image: alpine:latest
+          restartPolicy: Always
+          command: ['sh', '-c', 'tail -F /opt/logs.txt']
+          volumeMounts:
+            - name: data
+              mountPath: /opt
+      restartPolicy: Never
+      volumes:
+        - name: data
+          emptyDir: {}</pre>
+                <span class="comment">💡 Ici, le SideCar <code>logshipper</code> suit les logs du conteneur principal (<code>myjob</code>) qui écrit une seule fois. Le SideCar reste actif pour permettre la récupération des logs avant que le Job ne se termine.</span>
+            </div>
+
+            <!-- ===== EXEMPLE COMPLET : APACHE + NGINX SIDECAR (PROXY HTTPS) ===== -->
+            <h2>🔧 Exemple complet : Apache + Nginx en SideCar (proxy HTTPS)</h2>
+            
+
+            <div class="exemple-box">
+                <div class="titre-exemple">🎯 Objectif : Exposer un serveur Apache via un proxy Nginx qui gère le HTTPS (TLS) et offre une configuration sécurisée.</div>
+
+                <!-- ÉTAPE 1 -->
+                <div class="step">📄 Étape 1 : Déploiement Apache seul (<code>04c_nginx_proxy_01_Apache.yml</code>)</div>
                 <pre>apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -355,67 +404,154 @@ spec:
         image: ubuntu/apache2
         ports:
         - containerPort: 80</pre>
-                <div class="step">📄 Étape 2 : Génération des certificats et création du Secret</div>
-                <pre>openssl req -newkey rsa:2048 -nodes -keyout nginx.key -x509 -days 365 -out nginx.crt
-kubectl create secret generic nginx-certs-keys --from-file=./nginx.crt --from-file=./nginx.key</pre>
-                <div class="step">📄 Étape 3 : Fichier de configuration Nginx (<code>default.conf</code>)</div>
+                <span class="comment">💡 Ce déploiement crée un seul conteneur Apache exposant le port 80. Le but est d'avoir un serveur Web fonctionnel avant d'ajouter le proxy HTTPS.</span>
+                <pre># Application :
+kubectl apply -f 04c_nginx_proxy_01_Apache.yml
+
+# Vérification :
+kubectl get pods
+kubectl exec -it &lt;pod-name&gt; -- service apache2 status
+# Sortie : * apache2 is running</pre>
+
+                <!-- ÉTAPE 2 -->
+                <div class="step">📄 Étape 2 : Génération des certificats TLS et création du Secret</div>
+                <pre># Génération d'une clé privée et d'un certificat auto-signé (valable 365 jours)
+openssl req -newkey rsa:2048 -nodes -keyout nginx.key -x509 -days 365 -out nginx.crt
+
+# Création du Secret dans Kubernetes (stockage sécurisé)
+kubectl create secret generic nginx-certs-keys --from-file=./nginx.crt --from-file=./nginx.key
+
+# Vérification du Secret
+kubectl describe secrets/nginx-certs-keys</pre>
+                <span class="comment">💡 Les Secrets sont utilisés pour stocker des données sensibles (certificats, clés privées) de manière sécurisée. Ils sont montés en lecture seule dans les conteneurs.</span>
+
+                <!-- ÉTAPE 3 -->
+                <div class="step">📄 Étape 3 : Fichier de configuration Nginx (<code>04c_nginx_proxy_02_nginx_default.conf</code>)</div>
                 <pre>server {
     listen 443 ssl;
+    root /usr/share/nginx/html;
+    index index.html;
     server_name localhost;
     ssl_certificate /etc/nginx/ssl/nginx.crt;
     ssl_certificate_key /etc/nginx/ssl/nginx.key;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2;
+    ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:...';
+    ssl_prefer_server_ciphers on;
+    add_header Strict-Transport-Security max-age=15768000;
+    ssl_stapling on;
+    ssl_stapling_verify on;
     location / {
-        proxy_pass http://localhost:80;
-        proxy_set_header Host $host;
+        proxy_pass http://localhost/;   # 👈 Proxy vers Apache sur localhost:80
     }
 }</pre>
-                <div class="step">📄 Étape 4 : Création du ConfigMap et déploiement du Pod avec SideCar</div>
-                <pre>kubectl create configmap nginxconfigmap --from-file=default.conf
+                <span class="comment">💡 Cette configuration est robuste : elle utilise TLSv1.2, des ciphers modernes, HSTS, et OCSP Stapling. Le proxy reverse redirige tout le trafic HTTPS vers Apache en HTTP sur <code>localhost</code>.</span>
 
-apiVersion: v1
-kind: Pod
+                <!-- ÉTAPE 4 -->
+                <div class="step">📄 Étape 4 : Création du ConfigMap à partir du fichier de configuration</div>
+                <pre># Création du ConfigMap
+kubectl create configmap nginxconfigmap --from-file=default.conf=04c_nginx_proxy_02_nginx_default.conf
+
+# Vérification
+kubectl describe configmap nginxconfigmap</pre>
+                <span class="comment">💡 Les ConfigMaps sont idéaux pour la configuration non sensible (fichiers de conf). Ils peuvent être montés en tant que fichiers dans les conteneurs.</span>
+
+                <!-- ÉTAPE 5 -->
+                <div class="step">📄 Étape 5 : Déploiement Apache + Nginx SideCar (<code>04c_nginx_proxy_03_Apache_Nginx.yml</code>)</div>
+                <pre>apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: nginx-proxy
+  namespace: kubernetes-tp
+  labels:
+    app: nginx-proxy
 spec:
-  containers:
-  - name: apache
-    image: ubuntu/apache2
-    ports:
-    - containerPort: 80
-  - name: nginxhttps
-    image: nginx
-    volumeMounts:
-    - name: nginx-config
-      mountPath: /etc/nginx/conf.d
-    - name: nginx-certs
-      mountPath: /etc/nginx/ssl
-    ports:
-    - containerPort: 443
-  volumes:
-  - name: nginx-config
-    configMap:
-      name: nginxconfigmap
-  - name: nginx-certs
-    secret:
-      secretName: nginx-certs-keys</pre>
-                <div class="step">🔍 Étape 5 : Vérification</div>
-                <pre>kubectl get pods
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-proxy
+  template:
+    metadata:
+      labels:
+        app: nginx-proxy
+    spec:
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: nginx-certs-keys
+      - name: configmap-volume
+        configMap:
+          name: nginxconfigmap
+      containers:
+      - name: apache
+        image: ubuntu/apache2
+        ports:
+        - containerPort: 80
+      initContainers:
+      - name: nginxhttps
+        restartPolicy: Always   # 👈 SideCar : reste actif en permanence
+        image: ymqytw/nginxhttps:1.5  # Image contenant nginx + auto-reload
+        command: ["/home/auto-reload-nginx.sh"]   # Script qui recharge Nginx en cas de changement de configuration
+        ports:
+        - containerPort: 443
+        volumeMounts:
+        - mountPath: /etc/nginx/ssl
+          name: secret-volume
+        - mountPath: /etc/nginx/conf.d
+          name: configmap-volume
+  minReadySeconds: 30
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0</pre>
+                <span class="comment">💡 Points clés :<br>
+                - <code>restartPolicy: Always</code> sur l'InitContainer → SideCar.<br>
+                - <code>volumes</code> : le Secret (<code>secret-volume</code>) pour les certificats, le ConfigMap (<code>configmap-volume</code>) pour la configuration.<br>
+                - <code>auto-reload-nginx.sh</code> : un script qui surveille les changements du fichier <code>default.conf</code> avec <code>inotifywait</code> et recharge Nginx automatiquement.<br>
+                - Stratégie <code>RollingUpdate</code> : <code>maxSurge: 1</code> et <code>maxUnavailable: 0</code> garantit une mise à jour sans interruption (un Pod remplace l'autre).
+                </span>
+
+                <!-- ÉTAPE 6 -->
+                <div class="step">🔍 Étape 6 : Vérification du proxy HTTPS</div>
+                <pre># Récupérer l'IP du Pod
+kubectl get pods -n kubernetes-tp -o wide
+
+# Tester en HTTP (port 80) et en HTTPS (port 443) sur l'IP du Pod
+# Les deux doivent renvoyer la page Apache par défaut
 wget http://10.244.1.38 -O /tmp/index1
 wget --no-check-certificate https://10.244.1.38 -O /tmp/index2
-diff /tmp/index1 /tmp/index2   # Ne doit rien retourner</pre>
-                <div class="step">🌍 Étape 6 : Exposition en LoadBalancer</div>
+diff /tmp/index1 /tmp/index2   # Ne doit rien retourner → les pages sont identiques</pre>
+                <span class="comment">💡 Le proxy Nginx transforme la requête HTTPS en HTTP vers Apache, puis renvoie la réponse. Les deux appels retournent le même contenu.</span>
+
+                <!-- ÉTAPE 7 -->
+                <div class="step">🌍 Étape 7 : Exposition du service en LoadBalancer (<code>04c_nginx_proxy_04_LoadBalancer.yml</code>)</div>
                 <pre>apiVersion: v1
 kind: Service
 metadata:
   name: nginx-proxy
+  namespace: kubernetes-tp
 spec:
   type: LoadBalancer
   ports:
   - port: 443
+    protocol: TCP
   selector:
     app: nginx-proxy
   externalIPs:
-  - "192.168.1.140"</pre>
+    - "192.168.1.120"</pre>
+                <span class="comment">💡 Ce service expose le port 443 vers l'extérieur via un LoadBalancer (MetalLB ou cloud provider). L'IP externe <code>192.168.1.120</code> est une IP statique (à adapter à votre infrastructure).</span>
+                <pre># Application
+kubectl apply -f 04c_nginx_proxy_04_LoadBalancer.yml
+
+# Récupération du port externe (NodePort)
+kubectl get svc -n kubernetes-tp
+
+# Test externe
+curl --no-check-certificate https://192.168.1.120:&lt;NODE_PORT&gt;</pre>
+                <span class="comment">🎉 L'application est désormais accessible en HTTPS depuis l'extérieur du cluster !</span>
             </div>
 
             <!-- ===== 4 EXEMPLES PRATIQUES SUPPLÉMENTAIRES ===== -->
@@ -602,6 +738,7 @@ Kubernetes control plane is running at https://172.18.0.2:6443</pre></div>
                     <li><strong>Appliquez le principe du moindre privilège</strong> avec <code>securityContext</code>.</li>
                     <li><strong>Isoler les environnements</strong> avec des namespaces et Network Policies.</li>
                     <li><strong>Surveillez les logs</strong> et définissez des <strong>Resource Quotas</strong>.</li>
+                    <li><strong>Pour les certificats</strong>, stockez-les dans des Secrets, jamais en clair.</li>
                 </ul>
             </div>
 
