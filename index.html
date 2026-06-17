@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K8s Lab – Formation complète (Pods & Services)</title>
+    <title>K8s Lab – Formation complète (Pods, Services & Volumes)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
@@ -74,12 +74,12 @@
 </head>
 <body>
 <div class="container">
-    <h1>📘 K8s Lab – Formation Kubernetes (Pods & Services)</h1>
-    <p class="sub">Choisissez vos options, visualisez l’architecture, générez les fichiers .yml et apprenez avec un cours complet sur les Pods et Services.</p>
+    <h1>📘 K8s Lab – Formation Kubernetes (Pods, Services & Volumes)</h1>
+    <p class="sub">Choisissez vos options, visualisez l’architecture, générez les fichiers .yml et apprenez avec un cours complet sur les Pods, Services et Volumes.</p>
 
     <div class="tabs">
         <button class="tab-btn active" data-tab="generator">⚙️ Générateur</button>
-        <button class="tab-btn" data-tab="course">📖 Cours (Pods & Services)</button>
+        <button class="tab-btn" data-tab="course">📖 Cours (Pods, Services, Volumes)</button>
     </div>
 
     <!-- ================= TAB 1 : GÉNÉRATEUR ================= -->
@@ -114,7 +114,7 @@
         </div>
     </div>
 
-    <!-- ================= TAB 2 : COURS COMPLET (avec Apache+Nginx corrigé) ================= -->
+    <!-- ================= TAB 2 : COURS COMPLET ================= -->
     <div id="course" class="tab-content">
         <div class="course-section">
 
@@ -128,7 +128,8 @@
                 <strong>Objectifs de la formation :</strong><br>
                 - Comprendre les cas d'utilisation des Pods.<br>
                 - Appliquer des exemples d'architectures.<br>
-                - Définir le rôle des services.
+                - Définir le rôle des services.<br>
+                - Maîtriser les volumes et le stockage persistant.
             </div>
 
             <!-- ===== RÉSEAU ===== -->
@@ -373,13 +374,12 @@ spec:
                 <span class="comment">💡 Ici, le SideCar <code>logshipper</code> suit les logs du conteneur principal (<code>myjob</code>) qui écrit une seule fois. Le SideCar reste actif pour permettre la récupération des logs avant que le Job ne se termine.</span>
             </div>
 
-            <!-- ===== EXEMPLE COMPLET : APACHE + NGINX SIDECAR (PROXY HTTPS) – CORRIGÉ ===== -->
+            <!-- ===== EXEMPLE APACHE+NGINX CORRIGÉ ===== -->
             <h2>🔧 Exemple complet : Apache + Nginx en SideCar (proxy HTTPS) – Version corrigée</h2>
             <p>
                 ⚠️ <strong>Correction importante :</strong> L’image <code>ymqytw/nginxhttps:1.5</code> est obsolète (manifeste v1). Nous utilisons désormais l’image officielle <code>nginx:alpine</code> avec la commande <code>nginx -g "daemon off;"</code>.
-            </p>
+           
             
-
             <div class="exemple-box">
                 <div class="titre-exemple">🎯 Objectif : Exposer un serveur Apache via un proxy Nginx qui gère le HTTPS (TLS).</div>
 
@@ -541,6 +541,200 @@ kubectl apply -f 04c_nginx_proxy_04_LoadBalancer.yml
 kubectl get svc -n kubernetes-tp
 curl --no-check-certificate https://192.168.1.120:&lt;NODE_PORT&gt;</pre>
                 <span class="comment">🎉 L'application est désormais accessible en HTTPS depuis l'extérieur du cluster !</span>
+            </div>
+
+            <!-- ===================================================================== -->
+            <!-- ===== NOUVELLE SECTION : VOLUMES DE STOCKAGE (ISSUE DU PDF 05) ===== -->
+            <!-- ===================================================================== -->
+            <h2>📦 Volumes de stockage</h2>
+            <p><span class="badge-cours">Nouveau</span> Cette section reprend l’intégralité du chapitre sur les volumes de la formation.</p>
+
+            <h3>📌 Problématique du stockage par défaut</h3>
+            <p>Par défaut, le stockage dans les conteneurs est :</p>
+            <ul>
+                <li><strong>Exclusif</strong> à chaque conteneur (non partagé).</li>
+                <li><strong>Éphémère</strong> : perdu à chaque redémarrage ou suppression du Pod.</li>
+                <li>Lancé avec un état « propre » (<em>clean state</em>) – rien n’est conservé.</li>
+            </ul>
+            <div class="def">
+                <strong>Solution :</strong> Kubernetes propose l’abstraction <strong>Volume</strong> pour :
+                <ul>
+                    <li>Persister des données (configuration, clés, données applicatives).</li>
+                    <li>Partager des fichiers entre conteneurs, Pods ou même avec l’extérieur.</li>
+                    <li>Offrir des stockages temporaires (quand on en a besoin).</li>
+                </ul>
+            </div>
+
+            <h3>📄 Déclaration d’un volume dans un Pod</h3>
+            <p>Deux sections dans le YAML :</p>
+            <ul>
+                <li><code>.spec.volumes</code> – on définit le volume (nom, type, source).</li>
+                <li><code>.spec.containers[*].volumeMounts</code> – on déclare le point de montage dans chaque conteneur.</li>
+            </ul>
+            <div class="exemple-box">
+                <div class="titre-exemple">Exemple extrait du fichier <code>04b_SideCar01.yml</code></div>
+                <pre>volumes:
+- name: data
+  emptyDir: {}        # Volume temporaire partagé
+
+containers:
+- name: myapp
+  volumeMounts:
+  - name: data
+    mountPath: /opt   # Monté dans /opt du conteneur</pre>
+                <span class="comment">💡 On voit ici un volume <code>emptyDir</code> partagé entre les conteneurs du même Pod.</span>
+            </div>
+
+            <h3>🧩 Types de volumes principaux</h3>
+            <ul>
+                <li><strong>emptyDir</strong> : volume temporaire créé au démarrage du Pod, vide, détruit avec le Pod. Utile pour le partage entre conteneurs.</li>
+                <li><strong>hostPath</strong> : monte un répertoire ou fichier du nœud (hôte) dans le conteneur. <em>À utiliser avec précaution (problèmes de portabilité Windows/Linux).</em></li>
+                <li><strong>configMap</strong> (lecture seule) : injecte des fichiers de configuration depuis un ConfigMap.</li>
+                <li><strong>secret</strong> : injecte des données sensibles (certificats, tokens) dans un volume temporaire (<code>tmpfs</code>).</li>
+                <li><strong>persistentVolumeClaim</strong> : utilise un PersistentVolume (PV) pour un stockage persistant (voir ci‑dessous).</li>
+                <li><strong>projected</strong> : agrège plusieurs sources (secret, configMap, downwardAPI, serviceAccountToken) dans un seul répertoire.</li>
+            </ul>
+
+            <h3>🔌 Container Storage Interface (CSI)</h3>
+            <p>
+                CSI est une norme qui permet aux fournisseurs de stockage (cloud, CEPH, NFS, etc.) de proposer leur solution à Kubernetes via une interface unifiée. Chaque fournisseur implémente les drivers CSI pour exposer son stockage.
+            </p>
+
+            <h3>📊 PersistentVolume (PV) et PersistentVolumeClaim (PVC)</h3>
+            <div class="def">
+                <strong>PV (PersistentVolume) :</strong> unité de stockage provisionnée par l’administrateur du cluster. C’est une ressource comme un Pod ou un Service, avec son propre cycle de vie, indépendant des Pods.<br>
+                <strong>PVC (PersistentVolumeClaim) :</strong> demande d’accès au stockage par un utilisateur (un Pod). Le PVC réclame un PV correspondant (taille, modes d’accès) et se lie à lui.
+            </div>
+
+            <h4>Modes d’accès</h4>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Valeur</th><th>Abréviation</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>ReadWriteOnce</code></td><td>RWO</td><td>Monté en lecture/écriture par un seul nœud (peut être partagé par plusieurs Pods sur ce nœud).</td></tr>
+                        <tr><td><code>ReadOnlyMany</code></td><td>ROX</td><td>Monté en lecture seule par plusieurs nœuds.</td></tr>
+                        <tr><td><code>ReadWriteMany</code></td><td>RWX</td><td>Monté en lecture/écriture par plusieurs nœuds.</td></tr>
+                        <tr><td><code>ReadWriteOncePod</code></td><td>RWOP</td><td>Monté en lecture/écriture par un seul Pod (depuis Kubernetes 1.29).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4>Provisionnement statique vs dynamique</h4>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Critère</th><th>Statique</th><th>Dynamique</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Flexibilité</strong></td><td>Peu flexible, cas prédéfinis</td><td>Très flexible, s’adapte aux besoins</td></tr>
+                        <tr><td><strong>Volumes existants</strong></td><td>Adapté pour attacher des ressources existantes (disques)</td><td>Quand on ne connaît pas les besoins à l’avance</td></tr>
+                        <tr><td><strong>Partage</strong></td><td>Très adapté au partage entre applications</td><td>Selon le cas, le partage dynamique n’est pas toujours idéal</td></tr>
+                        <tr><td><strong>Infrastructure as Code</strong></td><td>Pas idéal</td><td>Excellent (volumes créés par scripts)</td></tr>
+                        <tr><td><strong>Optimisation</strong></td><td>Taille allouée dès le départ, scalabilité limitée</td><td>Taille dynamique, consommation limitée</td></tr>
+                        <tr><td><strong>Coût</strong></td><td>Fixe, cher si mal calibré</td><td>Variable, adapté au modèle <em>pay-as-you-go</em></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4>Cycle de vie d’un PV</h4>
+            <ul>
+                <li><strong>Provisioning</strong> : création du PV (statique ou dynamique).</li>
+                <li><strong>Binding</strong> : le PVC se lie au PV correspondant.</li>
+                <li><strong>Utilisation</strong> : le Pod monte le PV via le PVC.</li>
+                <li><strong>Libération</strong> : à la suppression du Pod, le PVC est libéré.</li>
+                <li><strong>Reclaim Policy</strong> : que faire du PV après libération ? (<code>Retain</code> – conserver, <code>Delete</code> – supprimer, <code>Recycle</code> – réutiliser).</li>
+            </ul>
+
+            <h3>🔧 Exemple pratique : Nginx avec volume <code>hostPath</code></h3>
+            <p>Cet exemple correspond au TP du PDF. On va créer un fichier HTML sur le nœud (hôte) et le monter dans un Pod Nginx.</p>
+            <div class="exemple-box">
+                <div class="titre-exemple">📄 Étape 1 : Créer le fichier sur l’hôte (sur chaque worker)</div>
+                <pre>sudo mkdir -p /mnt/data
+sudo sh -c 'echo "Hello from Kubernetes storage" > /mnt/data/index.html'</pre>
+
+                <div class="step">📄 Étape 2 : Créer le PersistentVolume (hostPath)</div>
+                <pre>apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: task-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"</pre>
+                <span class="comment">💡 Ce PV pointe sur le répertoire <code>/mnt/data</code> de l’hôte.</span>
+
+                <div class="step">📄 Étape 3 : Créer le PVC</div>
+                <pre>apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Mi</pre>
+
+                <div class="step">📄 Étape 4 : Créer le Pod qui utilise le PVC</div>
+                <pre>apiVersion: v1
+kind: Pod
+metadata:
+  name: task-pv-pod
+spec:
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: task-pv-claim
+  containers:
+    - name: task-pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: task-pv-storage</pre>
+
+                <div class="step">🖥️ Appliquer et tester</div>
+                <pre>kubectl apply -f pv.yml
+kubectl apply -f pvc.yml
+kubectl apply -f pod.yml
+
+# Récupérer l'IP du Pod
+kubectl get pods -o wide
+
+# Vérifier le contenu
+curl http://&lt;IP_POD&gt;
+# Sortie : Hello from Kubernetes storage</pre>
+                <span class="comment">🎉 Le Pod Nginx affiche le contenu du fichier créé sur l’hôte !</span>
+                <p><strong>Remarque :</strong> Le stockage <code>hostPath</code> n’est pas recommandé en production (problèmes de portabilité, sécurité). Les volumes distants (NFS, CEPH, cloud CSI) sont préférables.</p>
+            </div>
+
+            <h3>📌 Projected Volumes</h3>
+            <p>
+                Un <strong>Projected Volume</strong> permet de rassembler plusieurs sources (secret, configMap, downwardAPI, serviceAccountToken, clusterTrustBundle) dans un seul répertoire.
+            </p>
+            <div class="exemple-box">
+                <div class="titre-exemple">Exemple de volume projeté</div>
+                <pre>volumes:
+- name: all-in-one
+  projected:
+    sources:
+    - secret:
+        name: mysecret
+        items:
+        - key: username
+          path: my-group/username
+    - configMap:
+        name: myconfigmap
+        items:
+        - key: config
+          path: my-group/config</pre>
+                <span class="comment">💡 Les fichiers seront montés dans le même répertoire, organisés en sous‑dossiers.</span>
             </div>
 
             <!-- ===== 4 EXEMPLES PRATIQUES SUPPLÉMENTAIRES ===== -->
@@ -728,6 +922,7 @@ Kubernetes control plane is running at https://172.18.0.2:6443</pre></div>
                     <li><strong>Isoler les environnements</strong> avec des namespaces et Network Policies.</li>
                     <li><strong>Surveillez les logs</strong> et définissez des <strong>Resource Quotas</strong>.</li>
                     <li><strong>Pour les certificats</strong>, stockez-les dans des Secrets, jamais en clair.</li>
+                    <li><strong>Pour les volumes persistants</strong>, utilisez des PVC et évitez <code>hostPath</code> en production.</li>
                 </ul>
             </div>
 
@@ -738,11 +933,13 @@ Kubernetes control plane is running at https://172.18.0.2:6443</pre></div>
                 <li><a href="https://kubernetes.io/fr/docs/concepts/workloads/pods/init-containers/" target="_blank">InitContainers</a></li>
                 <li><a href="https://kubernetes.io/fr/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" target="_blank">Sondes</a></li>
                 <li><a href="https://kubernetes.io/fr/docs/concepts/services-networking/service/" target="_blank">Services</a></li>
+                <li><a href="https://kubernetes.io/fr/docs/concepts/storage/volumes/" target="_blank">Volumes</a></li>
+                <li><a href="https://kubernetes.io/fr/docs/concepts/storage/persistent-volumes/" target="_blank">Persistent Volumes</a></li>
             </ul>
         </div>
     </div>
 
-    <div class="footer-note">K8s Lab – Formation complète · Pods, Services, InitContainers, SideCars, Probes + exemples pratiques.</div>
+    <div class="footer-note">K8s Lab – Formation complète · Pods, Services, Volumes, InitContainers, SideCars, Probes.</div>
 </div>
 
 <script>
@@ -919,7 +1116,57 @@ volumeBindingMode: WaitForFirstConsumer`;
             return lines.join('\n');
         }
 
-        // ==== FONCTION POUR GÉNÉRER LE YAML CORRIGÉ DE NGINX PROXY ====
+        // ==== FONCTIONS POUR LES NOUVEAUX FICHIERS YAML SUR LES VOLUMES ====
+        function generatePVHostPath() {
+            return `apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: task-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"`;
+        }
+
+        function generatePVCAndPod() {
+            return `apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Mi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: task-pv-pod
+spec:
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: task-pv-claim
+  containers:
+    - name: task-pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: task-pv-storage`;
+        }
+
+        // ==== FONCTION POUR LE YAML CORRIGÉ DE NGINX PROXY ====
         function generateNginxProxyCorrige() {
             return `apiVersion: apps/v1
 kind: Deployment
@@ -1106,7 +1353,11 @@ kubectl delete deployment test-nginx
             if (yamlParts.length) files['cluster-complet.yml'] = yamlParts.join('\n---\n');
             files['GUIDE-COMPLET.txt'] = generateFullGuide(opts);
 
-            // ==== AJOUT DU FICHIER NGINX PROXY CORRIGÉ ====
+            // ==== NOUVEAUX FICHIERS POUR LES VOLUMES ====
+            files['pv-hostpath-example.yml'] = generatePVHostPath();
+            files['pvc-and-pod-example.yml'] = generatePVCAndPod();
+
+            // ==== NGINX PROXY CORRIGÉ ====
             files['nginx-proxy-corrige.yml'] = generateNginxProxyCorrige();
 
             return files;
@@ -1135,7 +1386,7 @@ kubectl delete deployment test-nginx
             zip.generateAsync({ type: 'blob' }).then(blob => {
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'k8s-config-guide.zip';
+                link.download = 'k8s-config-guide-volumes.zip';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
