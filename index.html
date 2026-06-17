@@ -378,7 +378,7 @@ spec:
             <h2>🔧 Exemple complet : Apache + Nginx en SideCar (proxy HTTPS) – Version corrigée</h2>
             <p>
                 ⚠️ <strong>Correction importante :</strong> L’image <code>ymqytw/nginxhttps:1.5</code> est obsolète (manifeste v1). Nous utilisons désormais l’image officielle <code>nginx:alpine</code> avec la commande <code>nginx -g "daemon off;"</code>.
-           
+            </p>
             
             <div class="exemple-box">
                 <div class="titre-exemple">🎯 Objectif : Exposer un serveur Apache via un proxy Nginx qui gère le HTTPS (TLS).</div>
@@ -544,7 +544,7 @@ curl --no-check-certificate https://192.168.1.120:&lt;NODE_PORT&gt;</pre>
             </div>
 
             <!-- ===================================================================== -->
-            <!-- ===== NOUVELLE SECTION : VOLUMES DE STOCKAGE (ISSUE DU PDF 05) ===== -->
+            <!-- ===== VOLUMES DE STOCKAGE (ISSUE DU PDF 05) ===== -->
             <!-- ===================================================================== -->
             <h2>📦 Volumes de stockage</h2>
             <p><span class="badge-cours">Nouveau</span> Cette section reprend l’intégralité du chapitre sur les volumes de la formation.</p>
@@ -600,51 +600,82 @@ containers:
                 CSI est une norme qui permet aux fournisseurs de stockage (cloud, CEPH, NFS, etc.) de proposer leur solution à Kubernetes via une interface unifiée. Chaque fournisseur implémente les drivers CSI pour exposer son stockage.
             </p>
 
-            <h3>📊 PersistentVolume (PV) et PersistentVolumeClaim (PVC)</h3>
+            <!-- ===== NOUVELLE SECTION : PV, PVC, POD (EXPLICATION DÉTAILLÉE) ===== -->
+            <h2>🧠 Comprendre PV, PVC et Pod – L’essentiel du stockage persistant</h2>
+            <p>
+                Pour bien comprendre le stockage dans Kubernetes, il faut distinguer trois notions fondamentales : le <strong>Pod</strong> (l’application), le <strong>PersistentVolume (PV)</strong> (la ressource de stockage) et le <strong>PersistentVolumeClaim (PVC)</strong> (la demande de stockage). Ces trois éléments forment la chaîne d’approvisionnement du stockage persistant.
+            </p>
+
             <div class="def">
-                <strong>PV (PersistentVolume) :</strong> unité de stockage provisionnée par l’administrateur du cluster. C’est une ressource comme un Pod ou un Service, avec son propre cycle de vie, indépendant des Pods.<br>
-                <strong>PVC (PersistentVolumeClaim) :</strong> demande d’accès au stockage par un utilisateur (un Pod). Le PVC réclame un PV correspondant (taille, modes d’accès) et se lie à lui.
+                <strong>📌 Analogie simple :</strong> Imaginez que Kubernetes est un <strong>déménageur</strong>.
+                <ul>
+                    <li>Le <strong>PV</strong> est le <strong>camion de déménagement</strong> (la ressource – capacité 100 m³).</li>
+                    <li>Le <strong>PVC</strong> est votre <strong>bon de commande</strong> (je veux 30 m³ de ce camion).</li>
+                    <li>Le <strong>Pod</strong> est votre <strong>nouvel appartement</strong> (l’application) qui contient le <strong>salon</strong> (le dossier <code>/usr/share/nginx/html</code>).</li>
+                    <li>Le <code>volumeMounts</code> dans le Pod est l’ordre donné au déménageur : « Décharge les 30 m³ du camion directement dans le salon ! »</li>
+                </ul>
             </div>
 
-            <h4>Modes d’accès</h4>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Valeur</th><th>Abréviation</th><th>Description</th></tr></thead>
-                    <tbody>
-                        <tr><td><code>ReadWriteOnce</code></td><td>RWO</td><td>Monté en lecture/écriture par un seul nœud (peut être partagé par plusieurs Pods sur ce nœud).</td></tr>
-                        <tr><td><code>ReadOnlyMany</code></td><td>ROX</td><td>Monté en lecture seule par plusieurs nœuds.</td></tr>
-                        <tr><td><code>ReadWriteMany</code></td><td>RWX</td><td>Monté en lecture/écriture par plusieurs nœuds.</td></tr>
-                        <tr><td><code>ReadWriteOncePod</code></td><td>RWOP</td><td>Monté en lecture/écriture par un seul Pod (depuis Kubernetes 1.29).</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h4>Provisionnement statique vs dynamique</h4>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Critère</th><th>Statique</th><th>Dynamique</th></tr></thead>
-                    <tbody>
-                        <tr><td><strong>Flexibilité</strong></td><td>Peu flexible, cas prédéfinis</td><td>Très flexible, s’adapte aux besoins</td></tr>
-                        <tr><td><strong>Volumes existants</strong></td><td>Adapté pour attacher des ressources existantes (disques)</td><td>Quand on ne connaît pas les besoins à l’avance</td></tr>
-                        <tr><td><strong>Partage</strong></td><td>Très adapté au partage entre applications</td><td>Selon le cas, le partage dynamique n’est pas toujours idéal</td></tr>
-                        <tr><td><strong>Infrastructure as Code</strong></td><td>Pas idéal</td><td>Excellent (volumes créés par scripts)</td></tr>
-                        <tr><td><strong>Optimisation</strong></td><td>Taille allouée dès le départ, scalabilité limitée</td><td>Taille dynamique, consommation limitée</td></tr>
-                        <tr><td><strong>Coût</strong></td><td>Fixe, cher si mal calibré</td><td>Variable, adapté au modèle <em>pay-as-you-go</em></td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h4>Cycle de vie d’un PV</h4>
+            <h3>1. Le Pod – Le « Locataire » / L’application</h3>
             <ul>
-                <li><strong>Provisioning</strong> : création du PV (statique ou dynamique).</li>
-                <li><strong>Binding</strong> : le PVC se lie au PV correspondant.</li>
-                <li><strong>Utilisation</strong> : le Pod monte le PV via le PVC.</li>
-                <li><strong>Libération</strong> : à la suppression du Pod, le PVC est libéré.</li>
-                <li><strong>Reclaim Policy</strong> : que faire du PV après libération ? (<code>Retain</code> – conserver, <code>Delete</code> – supprimer, <code>Recycle</code> – réutiliser).</li>
+                <li><strong>Définition :</strong> Unité la plus petite déployable. Un ou plusieurs conteneurs partagent réseau, IPC, volumes.</li>
+                <li><strong>Rôle :</strong> Héberge votre application (ex: serveur Nginx).</li>
+                <li><strong>Caractère :</strong> Éphémère – s’il crash, il est recréé et les données internes sont perdues (à moins d’utiliser un volume persistant).</li>
+                <li><strong>Dans le TP :</strong> <code>task-pv-pod</code> est le Pod qui contient Nginx. Il monte le volume via <code>volumeMounts</code> pour servir la page HTML.</li>
             </ul>
 
-            <h3>🔧 Exemple pratique : Nginx avec volume <code>hostPath</code></h3>
-            <p>Cet exemple correspond au TP du PDF. On va créer un fichier HTML sur le nœud (hôte) et le monter dans un Pod Nginx.</p>
+            <h3>2. Le PersistentVolume (PV) – Le « Disque dur »</h3>
+            <ul>
+                <li><strong>Définition :</strong> Ressource de stockage provisionnée par l’administrateur, indépendante des Pods.</li>
+                <li><strong>Rôle :</strong> Représente un morceau de stockage (disque local, NFS, volume cloud).</li>
+                <li><strong>Caractéristiques :</strong> Non‑namespacé (visible de tout le cluster), persistant, cycle de vie indépendant.</li>
+                <li><strong>Dans le TP :</strong> <code>task-pv-volume</code> est un PV <code>hostPath</code> pointant vers <code>/mnt/data</code> sur l’hôte.</li>
+            </ul>
+
+            <h3>3. Le PersistentVolumeClaim (PVC) – Le « Bon de commande »</h3>
+            <ul>
+                <li><strong>Définition :</strong> Demande de stockage effectuée par un utilisateur (un développeur).</li>
+                <li><strong>Rôle :</strong> Spécifie la taille, les droits d’accès et la classe de stockage souhaités.</li>
+                <li><strong>Caractéristiques :</strong> Namespacé (appartient à un namespace), recherche automatiquement un PV correspondant et se lie (bind) à lui.</li>
+                <li><strong>Dans le TP :</strong> <code>task-pv-claim</code> demande 30Mi en RWO. Kubernetes le lie au PV <code>task-pv-volume</code>.</li>
+            </ul>
+
+            <h3>🔗 Comment ils interagissent (l’enchaînement logique)</h3>
+            <div class="def">
+                <ol>
+                    <li><strong>L’administrateur</strong> crée le <strong>PV</strong> (ex: <code>task-pv-volume</code> de 100Mi).</li>
+                    <li><strong>Le développeur</strong> crée le <strong>PVC</strong> (ex: <code>task-pv-claim</code> demandant 30Mi).</li>
+                    <li><strong>Kubernetes</strong> lie (bind) le PVC au PV correspondant.</li>
+                    <li><strong>Le développeur</strong> crée le <strong>Pod</strong> en spécifiant le PVC dans son volume.</li>
+                    <li><strong>Le Pod</strong> démarre et voit le volume monté dans son système de fichiers.</li>
+                </ol>
+            </div>
+
+            <h3>📊 Tableau comparatif</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Critère</th><th>Pod</th><th>PV (PersistentVolume)</th><th>PVC (PersistentVolumeClaim)</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Nature</strong></td><td>Unité de calcul (processus)</td><td>Ressource de stockage (disque)</td><td>Demande de ressource (ticket)</td></tr>
+                        <tr><td><strong>Qui le crée ?</strong></td><td>Développeur</td><td>Administrateur</td><td>Développeur</td></tr>
+                        <tr><td><strong>Scope</strong></td><td>Namespacé</td><td>Cluster (non-namespacé)</td><td>Namespacé</td></tr>
+                        <tr><td><strong>Cycle de vie</strong></td><td>Éphémère</td><td>Permanent</td><td>Lié au Pod (mais persiste)</td></tr>
+                        <tr><td><strong>Contenu</strong></td><td>Code applicatif</td><td>Emplacement physique</td><td>Critères (taille, modes)</td></tr>
+                        <tr><td><strong>Rôle</strong></td><td>Consomme le stockage</td><td>Fournit le stockage</td><td>Lie le besoin à la ressource</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>💡 Pourquoi cette séparation est géniale</h3>
+            <ul>
+                <li><strong>Découplage :</strong> Le développeur ne se soucie pas du type de stockage (local, NFS, cloud). Il utilise juste un PVC.</li>
+                <li><strong>Centralisation :</strong> L’administrateur gère les PV, peut les migrer sans impacter les développeurs.</li>
+                <li><strong>Réutilisation :</strong> Un PV peut être partagé par plusieurs Pods (en lecture seule par exemple).</li>
+            </ul>
+
+            <!-- ===== EXEMPLE PRATIQUE AVEC HOSTPATH (TP) ===== -->
+            <h3>🔧 Exemple pratique : Nginx avec volume <code>hostPath</code> (TP)</h3>
+            <p>Cet exemple reprend le TP que vous avez réalisé. Il illustre parfaitement l’utilisation de PV, PVC et Pod.</p>
             <div class="exemple-box">
                 <div class="titre-exemple">📄 Étape 1 : Créer le fichier sur l’hôte (sur chaque worker)</div>
                 <pre>sudo mkdir -p /mnt/data
@@ -697,12 +728,14 @@ spec:
         - containerPort: 80
       volumeMounts:
         - mountPath: "/usr/share/nginx/html"
-          name: task-pv-storage</pre>
+          name: task-pv-storage
+      securityContext:
+        runAsUser: 0   # Facultatif : force root pour éviter les erreurs 403</pre>
 
                 <div class="step">🖥️ Appliquer et tester</div>
-                <pre>kubectl apply -f pv.yml
-kubectl apply -f pvc.yml
-kubectl apply -f pod.yml
+                <pre>kubectl apply -f pv-hostpath.yml
+kubectl apply -f pvc-claim.yml
+kubectl apply -f pod-with-pvc.yml
 
 # Récupérer l'IP du Pod
 kubectl get pods -o wide
