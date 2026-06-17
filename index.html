@@ -7,9 +7,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
+        /* ===== STYLES ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fc; display: flex; justify-content: center; padding: 30px 20px; }
-        .container { max-width: 1100px; width: 100%; background: white; padding: 30px 35px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,20,50,0.15); }
+        .container { max-width: 1150px; width: 100%; background: white; padding: 30px 35px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,20,50,0.15); }
         h1 { color: #1a2b4c; border-left: 6px solid #2a7de1; padding-left: 15px; font-weight: 600; font-size: 28px; margin-bottom: 8px; }
         .sub { color: #5e6f8d; margin-bottom: 25px; font-size: 15px; padding-left: 21px; }
         .tabs { display: flex; gap: 5px; margin-bottom: 25px; border-bottom: 2px solid #d6dfeb; flex-wrap: wrap; }
@@ -20,7 +21,7 @@
         .tab-content.active { display: block; }
 
         .course-section { margin-bottom: 30px; }
-        .course-section h2 { color: #1a2b4c; font-size: 22px; margin-top: 30px; margin-bottom: 10px; border-left: 4px solid #2a7de1; padding-left: 12px; }
+        .course-section h2 { color: #1a2b4c; font-size: 22px; margin-top: 35px; margin-bottom: 10px; border-left: 4px solid #2a7de1; padding-left: 12px; }
         .course-section h3 { color: #1a2b4c; font-size: 18px; margin-top: 25px; margin-bottom: 8px; }
         .course-section p, .course-section li { color: #1f334f; line-height: 1.7; font-size: 15px; }
         .course-section ul { padding-left: 25px; margin: 10px 0; }
@@ -32,9 +33,11 @@
         .course-section .badge-secu { background: #c0392b; color: white; padding: 2px 12px; border-radius: 30px; font-size: 12px; font-weight: 600; display: inline-block; margin-right: 8px; }
         .course-section .def { background: #e5effa; padding: 12px 16px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #2a7de1; }
         .course-section .def-secu { background: #fdf0ee; padding: 12px 16px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #c0392b; }
-        .course-section .exemple-box { background: #f0f7fc; border: 1px solid #c4d6ed; border-radius: 10px; padding: 15px; margin: 12px 0; }
-        .course-section .exemple-box .titre-exemple { font-weight: 700; color: #1a2b4c; margin-bottom: 6px; }
+        .course-section .exemple-box { background: #f0f7fc; border: 1px solid #c4d6ed; border-radius: 10px; padding: 20px; margin: 18px 0; }
+        .course-section .exemple-box .titre-exemple { font-weight: 700; color: #1a2b4c; margin-bottom: 6px; font-size: 17px; }
+        .course-section .step { font-weight: 600; color: #1a2b4c; margin: 12px 0 4px 0; }
         .course-section .comment { color: #6a8a9e; font-style: italic; }
+        .course-section .sortie-attendue { background: #eaf5ea; border-left: 4px solid #2d862d; padding: 10px; margin: 8px 0; font-family: monospace; font-size: 13px; }
         @media (max-width: 700px) { .course-section .card-grid { grid-template-columns: 1fr; } .tab-btn { padding: 10px 16px; font-size: 14px; } }
 
         .simulation-card { background: #f0f7ff; border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 2px solid #d4e2f5; }
@@ -66,12 +69,12 @@
 </head>
 <body>
 <div class="container">
-    <h1>📘 K8s Lab – Générateur & Cours Complet</h1>
-    <p class="sub">Choisissez vos options, visualisez l’architecture, générez les fichiers .yml et obtenez un guide complet.</p>
+    <h1>📘 K8s Lab – Générateur & Cours Pratique</h1>
+    <p class="sub">Choisissez vos options, visualisez l’architecture, générez les fichiers .yml et apprenez avec des exemples concrets commentés.</p>
 
     <div class="tabs">
         <button class="tab-btn active" data-tab="generator">⚙️ Générateur</button>
-        <button class="tab-btn" data-tab="course">📖 Cours Kubernetes (Complet)</button>
+        <button class="tab-btn" data-tab="course">📖 Cours + Exemples Pratiques</button>
     </div>
 
     <!-- ================= TAB 1 : GÉNÉRATEUR ================= -->
@@ -106,15 +109,51 @@
         </div>
     </div>
 
-    <!-- ================= TAB 2 : COURS COMPLET ================= -->
+    <!-- ================= TAB 2 : COURS COMPLET (ENRICHI) ================= -->
     <div id="course" class="tab-content">
         <div class="course-section">
-            <h2>📖 Les fondamentaux de Kubernetes</h2>
-            <p>Kubernetes (K8s) est un orchestrateur de conteneurs open-source. Il automatise le déploiement, la mise à l’échelle et la gestion des applications conteneurisées.</p>
 
-            <h2>🧩 Concepts clés (avec exemples commentés)</h2>
+            <!-- ===== NOUVEAU : INTRODUCTION GÉNÉRALE ===== -->
+            <h2>📖 Introduction à Kubernetes</h2>
+            <p>
+                <strong>Kubernetes</strong> (souvent abrégé K8s) est un orchestrateurd de conteneurs open-source, initialement développé par Google. 
+                Il permet d’automatiser le déploiement, la mise à l’échelle et la gestion d’applications conteneurisées.
+            </p>
+            <div class="def">
+                <strong>Pourquoi utiliser Kubernetes ?</strong><br>
+                - <strong>Résilience</strong> : redémarre automatiquement les conteneurs défaillants, remplace les nœuds défectueux.<br>
+                - <strong>Scalabilité</strong> : augmente ou diminue le nombre de réplicas en fonction de la charge (autoscaling).<br>
+                - <strong>Portabilité</strong> : fonctionne sur n’importe quel cloud (AWS, GCP, Azure) ou en on‑premise.<br>
+                - <strong>Déploiements déclaratifs</strong> : vous décrivez l’état souhaité (ex : 3 réplicas de Nginx) et Kubernetes s’assure que cet état est atteint.
+            </div>
+            <p>
+                <strong>Comment ça marche ?</strong> Un cluster Kubernetes est composé d’un <strong>plan de contrôle</strong> (API Server, etcd, Scheduler, Controller Manager) et de <strong>nœuds de travail (workers)</strong> qui exécutent les conteneurs.
+            </p>
+
+            <!-- ===== NOUVEAU : FONCTIONNEMENT DU RÉSEAU ===== -->
+            <h2>🌐 Comment fonctionne le réseau dans Kubernetes</h2>
+            <p>
+                Le réseau est un des aspects les plus importants (et parfois complexes) de Kubernetes. Voici les principes fondamentaux :
+            </p>
+            <ul>
+                <li><strong>Chaque Pod reçoit une adresse IP unique</strong> (et non chaque conteneur). Les Pods peuvent communiquer entre eux sans NAT (Network Address Translation).</li>
+                <li><strong>Le <code>kube-proxy</code></strong> est un composant qui gère les règles de réacheminement (iptables, IPVS) sur chaque nœud. Il assure que les requêtes vers un Service (ClusterIP) soient distribuées aux Pods correspondants (load‑balancing interne).</li>
+                <li><strong>Le CNI (Container Network Interface)</strong> est le plugin qui attribue les adresses IP aux Pods et gère la connectivité entre les nœuds. Les CNI populaires : Calico (supporte les Network Policies), Flannel (simple), Cilium (eBPF), Weave.</li>
+                <li><strong>Les Services</strong> créent une abstraction stable (ClusterIP) par‑dessus les Pods éphémères. Ils peuvent être de type <code>ClusterIP</code> (interne), <code>NodePort</code> (exposé sur un port de chaque nœud) ou <code>LoadBalancer</code> (IP externe provisionnée par MetalLB ou le cloud).</li>
+                <li><strong>L’Ingress</strong> apporte une couche supplémentaire de routage HTTP/HTTPS, permettant de rediriger le trafic vers différents Services selon le nom d’hôte ou le chemin.</li>
+            </ul>
+            <div class="def">
+                <strong>Résumé du flux réseau :</strong> Utilisateur → LoadBalancer (externe) → Ingress (optionnel) → Service (ClusterIP) → Pod.
+            </div>
+
+            <!-- ===== CONCEPTS CLÉS (conservés et enrichis) ===== -->
+            <h2>🧩 Concepts clés</h2>
             <div class="card-grid">
-                <div class="card"><h4><span class="badge-cours">Concept</span> Pod</h4><p>Unité la plus petite déployable. Contient un ou plusieurs conteneurs partageant le réseau.</p><pre>apiVersion: v1
+                <div class="card">
+                    <h4><span class="badge-cours">Pod</span></h4>
+                    <p><strong>Définition :</strong> Un Pod est le plus petit objet déployable. Il regroupe un ou plusieurs conteneurs qui partagent le même réseau (une seule IP) et le même espace de stockage (volumes).</p>
+                    <p><em>Exemple YAML :</em></p>
+                    <pre>apiVersion: v1
 kind: Pod
 metadata:
   name: mon-pod
@@ -125,8 +164,12 @@ spec:
   - name: nginx
     image: nginx:latest
     ports:
-    - containerPort: 80</pre></div>
-                <div class="card"><h4><span class="badge-cours">Concept</span> Service</h4><p>Expose un ensemble de Pods via une IP stable. Types : ClusterIP, NodePort, LoadBalancer.</p><pre>apiVersion: v1
+    - containerPort: 80</pre>
+                </div>
+                <div class="card">
+                    <h4><span class="badge-cours">Service</span></h4>
+                    <p><strong>Définition :</strong> Un Service expose un ensemble de Pods (sélectionnés par des labels) via une adresse IP et un port stables. Types : <code>ClusterIP</code> (interne), <code>NodePort</code> (externe sur un port statique), <code>LoadBalancer</code> (IP externe).</p>
+                    <pre>apiVersion: v1
 kind: Service
 metadata:
   name: mon-service
@@ -134,11 +177,14 @@ spec:
   selector:
     app: nginx
   ports:
-  - protocol: TCP
-    port: 80
+  - port: 80
     targetPort: 80
-  type: ClusterIP</pre></div>
-                <div class="card"><h4><span class="badge-cours">Concept</span> Ingress</h4><p>Routeur HTTP/HTTPS externe. Redirige vers les services selon le nom d'hôte ou le chemin.</p><pre>apiVersion: networking.k8s.io/v1
+  type: ClusterIP</pre>
+                </div>
+                <div class="card">
+                    <h4><span class="badge-cours">Ingress</span></h4>
+                    <p><strong>Définition :</strong> Un Ingress est un objet qui expose des services HTTP/HTTPS à l'extérieur du cluster en utilisant un nom d'hôte ou un chemin d'URL. Il agit comme un routeur (reverse proxy).</p>
+                    <pre>apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: mon-ingress
@@ -153,21 +199,12 @@ spec:
           service:
             name: mon-service
             port:
-              number: 80</pre></div>
-                <div class="card"><h4><span class="badge-cours">Concept</span> StorageClass</h4><p>Définit un provisionneur de volumes persistants (ex: local-path, EBS).</p><pre>apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: local-path
-provisioner: rancher.io/local-path
-reclaimPolicy: Delete</pre></div>
-                <div class="card"><h4><span class="badge-cours">Concept</span> ConfigMap</h4><p>Stocke des données de configuration non sensibles (variables d'environnement).</p><pre>apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  APP_COLOR: blue
-  APP_MODE: production</pre></div>
-                <div class="card"><h4><span class="badge-cours">Concept</span> Deployment</h4><p>Gère un ensemble de Pods avec rolling update, rollback et scaling.</p><pre>apiVersion: apps/v1
+              number: 80</pre>
+                </div>
+                <div class="card">
+                    <h4><span class="badge-cours">Deployment</span></h4>
+                    <p><strong>Définition :</strong> Un Deployment est un contrôleur qui gère un ensemble de Pods (via un ReplicaSet) en offrant des mises à jour déclaratives (rolling update, rollback, scaling).</p>
+                    <pre>apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deploy
@@ -183,154 +220,94 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:1.21</pre></div>
+        image: nginx:1.21</pre>
+                </div>
+                <div class="card">
+                    <h4><span class="badge-cours">ConfigMap</span></h4>
+                    <p><strong>Définition :</strong> Stocke des données de configuration non sensibles (ex : variables d’environnement, fichiers de configuration). Permet de découpler la configuration du code.</p>
+                    <pre>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_ENV: production
+  APP_DEBUG: "false"</pre>
+                </div>
+                <div class="card">
+                    <h4><span class="badge-cours">Secret</span></h4>
+                    <p><strong>Définition :</strong> Similaire à un ConfigMap, mais pour des données sensibles (mots de passe, tokens, clés SSH). Les données sont encodées en base64 et peuvent être chiffrées au repos.</p>
+                    <pre>apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+data:
+  password: dXNlcg==    # base64 de "user"</pre>
+                </div>
             </div>
 
-            <h2>🛠️ Commandes kubectl – Explications & Exemples</h2>
-            <div class="exemple-box"><div class="titre-exemple">🔍 <code>kubectl cluster-info</code></div><p>Affiche l'URL du serveur API.</p><pre>$ kubectl cluster-info
-Kubernetes control plane is running at https://172.18.0.2:6443</pre><span class="comment">💡 Vérifie que vous êtes bien connecté au cluster.</span></div>
-            <div class="exemple-box"><div class="titre-exemple">📋 <code>kubectl get nodes</code></div><p>Liste les nœuds avec leur statut.</p><pre>$ kubectl get nodes
+            <!-- ===== COMMANDES KUBECTL ===== -->
+            <h2>🛠️ Commandes kubectl essentielles</h2>
+            <div class="exemple-box">
+                <div class="titre-exemple">🔍 <code>kubectl cluster-info</code></div>
+                <p>Affiche l'URL du serveur API.</p>
+                <pre>$ kubectl cluster-info
+Kubernetes control plane is running at https://172.18.0.2:6443</pre>
+                <span class="comment">💡 Vérifie que vous êtes bien connecté au cluster.</span>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">📋 <code>kubectl get nodes</code></div>
+                <p>Liste les nœuds avec leur statut.</p>
+                <pre>$ kubectl get nodes
 NAME                 STATUS   ROLES           AGE
 kind-control-plane   Ready    control-plane   5m
-kind-worker          Ready    &lt;none&gt;         5m</pre><span class="comment">💡 Utilisez <code>-o wide</code> pour plus de détails (IP, version).</span></div>
-            <div class="exemple-box"><div class="titre-exemple">🔎 <code>kubectl describe pod &lt;nom&gt;</code></div><p>Détails et événements d'un Pod (très utile pour le debug).</p><pre>$ kubectl describe pod mon-pod
-...
-Events:
-  Type    Reason     Age   Message
-  Normal  Scheduled  2m    Successfully assigned...
-  Normal  Pulling    2m    Pulling image "nginx"</pre></div>
-            <div class="exemple-box"><div class="titre-exemple">📄 <code>kubectl apply -f fichier.yml</code></div><p>Crée ou met à jour des ressources.</p><pre>$ kubectl apply -f deployment.yml
-deployment.apps/nginx-deploy created</pre></div>
-            <div class="exemple-box"><div class="titre-exemple">📜 <code>kubectl logs &lt;pod&gt;</code></div><p>Affiche les logs du conteneur.</p><pre>$ kubectl logs nginx-deploy-7d8f8-5xg7f
-127.0.0.1 - - [10/Jan/2024] "GET / HTTP/1.1" 200</pre></div>
-            <div class="exemple-box"><div class="titre-exemple">🖥️ <code>kubectl exec -it &lt;pod&gt; -- /bin/bash</code></div><p>Ouvre un shell interactif dans le conteneur.</p><pre>$ kubectl exec -it mon-pod -- /bin/bash
-root@mon-pod:/# ls</pre></div>
+kind-worker          Ready    &lt;none&gt;         5m</pre>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">🔎 <code>kubectl describe pod &lt;nom&gt;</code></div>
+                <p>Détails et événements d'un Pod (indispensable pour le debug).</p>
+                <span class="comment">💡 La section <strong>Events</strong> est précieuse pour comprendre pourquoi un Pod ne démarre pas.</span>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">📄 <code>kubectl apply -f fichier.yml</code></div>
+                <p>Crée ou met à jour des ressources à partir d'un fichier YAML (déclaratif).</p>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">📜 <code>kubectl logs &lt;pod&gt;</code></div>
+                <p>Affiche les logs du conteneur.</p>
+            </div>
+            <div class="exemple-box">
+                <div class="titre-exemple">🖥️ <code>kubectl exec -it &lt;pod&gt; -- /bin/bash</code></div>
+                <p>Ouvre un shell interactif dans le conteneur pour diagnostiquer.</p>
+            </div>
 
-            <h2>🔒 Sécurité & Administration Infrastructure</h2>
-            <div class="def-secu"><strong>Objectif :</strong> Garantir la confidentialité, l'intégrité et la disponibilité du cluster.</div>
-            
-            <h3>1. RBAC (Contrôle des accès)</h3>
-            <p>Définit <strong>qui</strong> peut faire <strong>quoi</strong> sur <strong>quelles</strong> ressources.</p>
-            <div class="exemple-box"><pre># Role : lecture des Pods dans le namespace "dev"
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  namespace: dev
-  name: pod-reader
-rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list"]
----
-# RoleBinding : lie le Role à l'utilisateur "alice"
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  namespace: dev
-  name: alice-binding
-subjects:
-- kind: User
-  name: alice
-roleRef:
-  kind: Role
-  name: pod-reader</pre><span class="comment">💡 Vérification : <code>kubectl auth can-i list pods --as=alice -n dev</code></span></div>
-
-            <h3>2. Network Policies (Isolation réseau)</h3>
-            <p>Par défaut, tous les Pods communiquent. Les Network Policies filtrent le trafic.</p>
-            <div class="exemple-box"><pre>apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: backend-policy
-spec:
-  podSelector:
-    matchLabels:
-      app: backend
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: frontend
-    ports:
-    - protocol: TCP
-      port: 8080</pre><span class="comment">💡 Nécessite un CNI supportant les Network Policies (Calico, Cilium, Weave).</span></div>
-
-            <h3>3. Pod Security Standards (PSS)</h3>
-            <p>Profils : Privileged, Baseline, Restricted. Appliqués via les labels de namespace.</p>
-            <div class="exemple-box"><pre>apiVersion: v1
-kind: Namespace
-metadata:
-  name: production
-  labels:
-    pod-security.kubernetes.io/enforce: restricted</pre></div>
-
-            <h3>4. Gestion sécurisée des Secrets</h3>
-            <p>Les Secrets sont encodés en base64, mais non chiffrés par défaut dans etcd. Activez le chiffrement au repos.</p>
-            <div class="exemple-box"><pre># EncryptionConfiguration pour chiffrer les Secrets
-apiVersion: apiserver.config.k8s.io/v1
-kind: EncryptionConfiguration
-resources:
-- resources:
-  - secrets
-  providers:
-  - aescbc:
-      keys:
-      - name: key1
-        secret: &lt;base64-key&gt;
-  - identity: {}</pre></div>
-
-            <h3>5. Resource Quotas & Limit Ranges</h3>
-            <p>Protègent le cluster contre les dénis de service.</p>
-            <div class="exemple-box"><pre>apiVersion: v1
-kind: ResourceQuota
-metadata:
-  name: compute-quota
-  namespace: dev
-spec:
-  hard:
-    requests.cpu: "4"
-    requests.memory: "8Gi"
-    pods: "10"</pre></div>
-
-            <h3>6. Security Context (Moindre privilège)</h3>
-            <div class="exemple-box"><pre>apiVersion: v1
-kind: Pod
-metadata:
-  name: secure-pod
-spec:
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-  containers:
-  - name: app
-    image: nginx
-    securityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop: ["ALL"]
-      readOnlyRootFilesystem: true</pre></div>
-
-            <h3>7. Audit Logs</h3>
-            <p>Enregistre toutes les requêtes vers l'API Server pour la conformité.</p>
-            <div class="exemple-box"><pre># Politique d'audit (exemple)
-apiVersion: audit.k8s.io/v1
-kind: Policy
-rules:
-- level: Metadata
-# Démarrer l'API Server avec :
---audit-policy-file=/etc/kubernetes/audit-policy.yaml
---audit-log-path=/var/log/kubernetes/audit.log</pre></div>
-
-            <h3>8. CIS Benchmarks & Durcissement</h3>
+            <!-- ===== SÉCURITÉ ===== -->
+            <h2>🔒 Sécurité & Administration (bonnes pratiques)</h2>
+            <div class="def-secu">
+                <strong>Objectif :</strong> Garantir la confidentialité, l'intégrité et la disponibilité du cluster.
+            </div>
             <ul>
-                <li>Utilisez <code>kube-bench</code> pour auditer votre cluster.</li>
-                <li>Maintenez les composants à jour (CVEs).</li>
-                <li>N'exposez pas l'API Server sur Internet sans authentification forte.</li>
+                <li><strong>RBAC</strong> (Role-Based Access Control) : définit qui peut faire quoi sur quelles ressources.</li>
+                <li><strong>Network Policies</strong> : isole le trafic entre Pods (ex : seule l'application front-end peut accéder à la base de données).</li>
+                <li><strong>Pod Security Standards</strong> : profils Privileged, Baseline, Restricted.</li>
+                <li><strong>Gestion des Secrets</strong> : chiffrement au repos dans etcd, utilisation d'outils comme External Secrets Operator.</li>
+                <li><strong>Resource Quotas</strong> : limite la consommation CPU/mémoire par namespace.</li>
+                <li><strong>Security Context</strong> : exécute les conteneurs avec un utilisateur non-root et sans capacités Linux superflues.</li>
+                <li><strong>Audit Logs</strong> : enregistre toutes les requêtes vers l'API Server.</li>
+                <li><strong>CIS Benchmarks</strong> : utilisez <code>kube-bench</code> pour auditer votre cluster.</li>
             </ul>
 
-            <h2>📦 Exemples complets de déploiement</h2>
-            <div class="exemple-box"><div class="titre-exemple">Déploiement Nginx sécurisé</div><pre>apiVersion: apps/v1
+            <!-- ===== EXEMPLES PRATIQUES DÉTAILLÉS ===== -->
+            <h2>🚀 EXEMPLES PRATIQUES – APPRENDRE EN FAISANT</h2>
+            <p>Chaque exemple est découpé en étapes avec des commandes commentées et la sortie attendue.</p>
+
+            <!-- Exemple 1 : Nginx + LB -->
+            <h3>Exemple 1 : Déployer Nginx avec un service LoadBalancer</h3>
+            <div class="exemple-box">
+                <div class="titre-exemple">🎯 Objectif : Exposer une application Web Nginx à l'extérieur du cluster via une IP publique (ou locale avec MetalLB).</div>
+                <div class="step">📄 Étape 1 : Créer le fichier <code>nginx-lb.yml</code></div>
+                <pre># nginx-lb.yml
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deploy
@@ -344,18 +321,11 @@ spec:
       labels:
         app: nginx
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 101
       containers:
       - name: nginx
         image: nginx:1.21
         ports:
         - containerPort: 80
-        securityContext:
-          capabilities:
-            drop: ["ALL"]
-          readOnlyRootFilesystem: true
 ---
 apiVersion: v1
 kind: Service
@@ -365,9 +335,145 @@ spec:
   selector:
     app: nginx
   ports:
-  - port: 80
+  - protocol: TCP
+    port: 80
     targetPort: 80
-  type: LoadBalancer</pre></div>
+  type: LoadBalancer</pre>
+                <div class="step">🖥️ Étape 2 : Appliquer</div>
+                <pre>kubectl apply -f nginx-lb.yml</pre>
+                <div class="sortie-attendue">deployment.apps/nginx-deploy created
+service/nginx-service created</div>
+                <div class="step">🔍 Étape 3 : Vérifier les Pods</div>
+                <pre>kubectl get pods</pre>
+                <div class="sortie-attendue">NAME                            READY   STATUS    RESTARTS   AGE
+nginx-deploy-7d8f8-5xg7f        1/1     Running   0          30s
+nginx-deploy-7d8f8-6h8g9        1/1     Running   0          30s</div>
+                <div class="step">🌍 Étape 4 : Récupérer l'IP externe</div>
+                <pre>kubectl get svc nginx-service</pre>
+                <div class="sortie-attendue">NAME            TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)
+nginx-service   LoadBalancer   10.96.123.45    192.168.1.240    80:30001/TCP</div>
+                <div class="step">🧪 Étape 5 : Tester</div>
+                <pre>curl http://192.168.1.240</pre>
+                <div class="sortie-attendue">&lt;!DOCTYPE html&gt;... (page Nginx)</div>
+                <div class="step">🗑️ Étape 6 : Nettoyer</div>
+                <pre>kubectl delete -f nginx-lb.yml</pre>
+            </div>
+
+            <!-- Exemple 2 : ConfigMap -->
+            <h3>Exemple 2 : Utiliser un ConfigMap</h3>
+            <div class="exemple-box">
+                <div class="titre-exemple">🎯 Objectif : Injecter des variables d'environnement via ConfigMap.</div>
+                <div class="step">📄 Étape 1 : ConfigMap</div>
+                <pre># app-config.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_ENV: production
+  APP_DEBUG: "false"</pre>
+                <div class="step">📄 Étape 2 : Pod utilisant le ConfigMap</div>
+                <pre>apiVersion: v1
+kind: Pod
+metadata:
+  name: app-pod
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "echo $APP_ENV; sleep 3600"]
+    envFrom:
+    - configMapRef:
+        name: app-config</pre>
+                <div class="step">🖥️ Étape 3 : Appliquer et tester</div>
+                <pre>kubectl apply -f app-config.yml
+kubectl apply -f pod-with-config.yml
+kubectl logs app-pod</pre>
+                <div class="sortie-attendue">production</div>
+            </div>
+
+            <!-- Exemple 3 : Ingress -->
+            <h3>Exemple 3 : Ingress multi-hôtes</h3>
+            <div class="exemple-box">
+                <div class="titre-exemple">🎯 Objectif : Router deux applications sur deux noms de domaine différents.</div>
+                <div class="step">📄 Fichier <code>ingress-example.yml</code></div>
+                <pre>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mon-ingress
+spec:
+  rules:
+  - host: app1.mondomaine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-app1
+            port:
+              number: 80
+  - host: app2.mondomaine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-app2
+            port:
+              number: 80</pre>
+                <div class="step">🖥️ Appliquer et vérifier</div>
+                <pre>kubectl apply -f ingress-example.yml
+kubectl get ingress</pre>
+                <div class="sortie-attendue">NAME          CLASS    HOSTS                                ADDRESS
+mon-ingress   &lt;none&gt;   app1.mondomaine.com,app2.mondomaine.com   192.168.1.240</div>
+            </div>
+
+            <!-- Exemple 4 : PVC -->
+            <h3>Exemple 4 : Stockage persistant (PVC)</h3>
+            <div class="exemple-box">
+                <div class="titre-exemple">🎯 Objectif : Conserver des données même après redémarrage du Pod.</div>
+                <div class="step">📄 PVC et Pod</div>
+                <pre># pvc.yml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mon-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# pod-avec-stockage.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-avec-stockage
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: stockage
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: stockage
+    persistentVolumeClaim:
+      claimName: mon-pvc</pre>
+                <div class="step">🖥️ Appliquer et tester la persistance</div>
+                <pre>kubectl apply -f pvc.yml
+kubectl apply -f pod-avec-stockage.yml
+kubectl exec pod-avec-stockage -- sh -c "echo 'Persistant' > /usr/share/nginx/html/test.html"
+kubectl delete pod pod-avec-stockage
+kubectl apply -f pod-avec-stockage.yml
+kubectl exec pod-avec-stockage -- cat /usr/share/nginx/html/test.html</pre>
+                <div class="sortie-attendue">Persistant</div>
+                <span class="comment">🎉 Les données sont bien persistantes !</span>
+            </div>
 
             <h2>🔗 Ressources externes</h2>
             <ul>
@@ -378,10 +484,11 @@ spec:
         </div>
     </div>
 
-    <div class="footer-note">K8s Lab – Formation Kubernetes · Fichiers .yml + Guide complet.</div>
+    <div class="footer-note">K8s Lab – Apprentissage par la pratique · Exemples commentés pas-à-pas.</div>
 </div>
 
 <script>
+    // ===== SCRIPT =====
     (function() {
         // Gestion des onglets
         const tabBtns = document.querySelectorAll('.tab-btn');
@@ -473,7 +580,7 @@ spec:
             } catch (e) { container.innerHTML = '<pre style="color:red;">❌ Erreur de rendu.</pre>'; }
         }
 
-        // Génération YAML
+        // ==== GÉNÉRATION YAML ====
         function generateKindConfig(distro, workers, masters, extraPorts) {
             if (distro !== 'kind') return null;
             let nodes = [{ role: "control-plane" }];
@@ -554,12 +661,11 @@ volumeBindingMode: WaitForFirstConsumer`;
             return lines.join('\n');
         }
 
-        // Guide complet avec TOUTES les commandes commentées
+        // ==== GUIDE TÉLÉCHARGÉ (commandes commentées) ====
         function generateFullGuide(opts) {
-            const { distro, cni, workers, masters, enableLb, lbRange, enableIngress, enableStorage, enableMonitoring, enableDashboard, extraPorts } = opts;
+            const { distro, cni, workers, masters, enableLb, lbRange, enableIngress, enableStorage, enableMonitoring, enableDashboard } = opts;
             let guide = `================================================================================
-          📘 GUIDE COMPLET D'INSTALLATION KUBERNETES (A À Z)
-          Toutes les commandes sont commentées et expliquées.
+          📘 GUIDE D'INSTALLATION KUBERNETES (COMMANDES COMMENTÉES)
 ================================================================================
 
 📅 Généré le : ${new Date().toLocaleString()}
@@ -575,39 +681,26 @@ volumeBindingMode: WaitForFirstConsumer`;
 `;
             if (distro === 'kind') {
                 guide += `# Explication : Kind crée un cluster dans des conteneurs Docker.
-# Le fichier cluster-complet.yml contient la configuration.
-
 kind create cluster --config=cluster-complet.yml
 
 # ✅ Vérification :
 kubectl get nodes
-# Sortie : 1 control-plane et ${workers} worker(s).
 `;
             } else if (distro === 'kubeadm') {
                 guide += `# Explication : Kubeadm initialise le plan de contrôle.
-
 sudo kubeadm init --config=cluster-complet.yml
 
-# Configuration du kubeconfig :
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-# ✅ Vérification :
 kubectl get nodes
-
-# 🔗 Ajout des workers (commande générée sur le master) :
-kubeadm token create --print-join-command
 `;
             } else {
                 guide += `# Explication : K3s est une distribution légère.
-
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik --disable servicelb --flannel-backend=none" sh -
-
 sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kube/config
 chmod 600 ~/.kube/config
-
-# ✅ Vérification :
 kubectl get nodes
 `;
             }
@@ -615,143 +708,82 @@ kubectl get nodes
 --------------------------------------------------------------------------------
 3. 🌐 INSTALLATION DU CNI (${cni})
 --------------------------------------------------------------------------------
-# Explication : Le CNI attribue les IPs aux Pods et gère la communication inter-nœuds.
-
 `;
             const cniUrls = { calico: "https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico.yaml", flannel: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml", cilium: "https://raw.githubusercontent.com/cilium/cilium/main/install/kubernetes/quick-install.yaml", weave: "https://github.com/weaveworks/weave/releases/latest/download/weave-daemonset-k8s.yaml" };
             guide += `kubectl apply -f ${cniUrls[cni]}
-
-# ✅ Vérification :
 kubectl get pods --all-namespaces | grep ${cni}
 kubectl get nodes
-# Les nœuds doivent passer de "NotReady" à "Ready".
 `;
             if (enableLb) {
                 guide += `
 --------------------------------------------------------------------------------
-4. ⚖️ INSTALLATION DU LOAD BALANCER (MetalLB) - Plage: ${lbRange}
+4. ⚖️ LOAD BALANCER (MetalLB) - ${lbRange}
 --------------------------------------------------------------------------------
-# Explication : MetalLB attribue une IP externe aux Services LoadBalancer.
-
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/manifests/namespace.yaml
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/manifests/metallb.yaml
-
 kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=60s
-
-# Application de la ConfigMap (définie dans cluster-complet.yml) :
 kubectl apply -f cluster-complet.yml
-
-# ✅ Vérification :
 kubectl get pods -n metallb-system
-`;
-            } else {
-                guide += `
---------------------------------------------------------------------------------
-4. ⚖️ LOAD BALANCER désactivé
---------------------------------------------------------------------------------
-# Utilisez NodePort ou port-forward :
-# kubectl expose deployment mon-app --type=NodePort --port=80
-# kubectl port-forward pod/mon-pod 8080:80
 `;
             }
             if (enableIngress) {
                 guide += `
 --------------------------------------------------------------------------------
-5. 🚪 INSTALLATION DE L'INGRESS CONTROLLER (Nginx)
+5. 🚪 INGRESS (Nginx)
 --------------------------------------------------------------------------------
-# Explication : Reverse proxy HTTP/HTTPS.
-
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.0/deploy/static/provider/cloud/deploy.yaml
-
-# ✅ Vérification :
 kubectl get svc -n ingress-nginx
 `;
             }
             if (enableStorage) {
                 guide += `
 --------------------------------------------------------------------------------
-6. 💾 CONFIGURATION DU STOCKAGE (StorageClass)
+6. 💾 STORAGE CLASS
 --------------------------------------------------------------------------------
-# Explication : La StorageClass 'local-path' provisionne des volumes locaux.
-
 kubectl apply -f cluster-complet.yml
-
-# ✅ Vérification :
 kubectl get storageclass
 `;
             }
             if (enableMonitoring) {
                 guide += `
 --------------------------------------------------------------------------------
-7. 📊 INSTALLATION DU MONITORING (Prometheus & Grafana)
+7. 📊 MONITORING
 --------------------------------------------------------------------------------
 kubectl create -f https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/setup/
 kubectl create -f https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/
-
-# ✅ Accès Grafana :
 kubectl port-forward svc/grafana -n monitoring 3000:3000
-# http://localhost:3000 (admin/admin)
 `;
             }
             if (enableDashboard) {
                 guide += `
 --------------------------------------------------------------------------------
-8. 🖥️ INSTALLATION DU DASHBOARD
+8. 🖥️ DASHBOARD
 --------------------------------------------------------------------------------
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
-
 kubectl create serviceaccount dashboard-admin -n kubernetes-dashboard
 kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kubernetes-dashboard:dashboard-admin
-
-# Récupération du token :
 kubectl create token dashboard-admin -n kubernetes-dashboard
-
-# ✅ Accès :
 kubectl proxy
-# http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
 `;
             }
             guide += `
 --------------------------------------------------------------------------------
-9. 🚀 TEST FINAL – DÉPLOIEMENT NGINX
+9. 🚀 TEST FINAL
 --------------------------------------------------------------------------------
-# 9.1 Création du déploiement
 kubectl create deployment test-nginx --image=nginx:alpine
-
-# 9.2 Exposition
 kubectl expose deployment test-nginx --port=80 --type=${enableLb ? 'LoadBalancer' : 'NodePort'}
-
-# 9.3 Récupération de l'IP (si LoadBalancer) ou du NodePort
 kubectl get svc test-nginx
-
-# 9.4 Test d'accès
-# Avec LoadBalancer :
-curl http://<EXTERNAL-IP>
-# Avec NodePort :
-curl http://<IP_NOEUD>:<NODE_PORT>
-
-# 9.5 Logs
+curl http://<IP>
 kubectl logs deployment/test-nginx
-
-# 9.6 Nettoyage
 kubectl delete service test-nginx
 kubectl delete deployment test-nginx
-
---------------------------------------------------------------------------------
-📂 FICHIERS GÉNÉRÉS
---------------------------------------------------------------------------------
-  - cluster-complet.yml   : Tous les manifests YAML (cluster, MetalLB, Storage).
-  - GUIDE-COMPLET.txt     : Ce fichier contenant toutes les commandes commentées.
-
-================================================================================
-                          FIN DU GUIDE
 ================================================================================`;
             return guide;
         }
 
         function generateConfigs() {
             const opts = getOptions();
-            const { distro, cni, workers, masters, enableLb, lbRange, enableIngress, enableStorage, enableMonitoring, enableDashboard, extraPorts } = opts;
+            const { distro, workers, masters, enableLb, lbRange, enableStorage, extraPorts } = opts;
             const files = {};
             const yamlParts = [];
 
