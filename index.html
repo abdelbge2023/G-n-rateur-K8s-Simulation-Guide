@@ -673,16 +673,19 @@ containers:
                 <li><strong>Réutilisation :</strong> Un PV peut être partagé par plusieurs Pods (en lecture seule par exemple).</li>
             </ul>
 
-            <!-- ===== EXEMPLE PRATIQUE AVEC HOSTPATH (TP) ===== -->
-            <h3>🔧 Exemple pratique : Nginx avec volume <code>hostPath</code> (TP)</h3>
-            <p>Cet exemple reprend le TP que vous avez réalisé. Il illustre parfaitement l’utilisation de PV, PVC et Pod.</p>
+            <!-- ===== EXEMPLE HOSTPATH ===== -->
+            <h3>🔧 Exemple pratique avec <code>hostPath</code> (version simplifiée)</h3>
+            <p>Cet exemple est une version simplifiée du TP (sans sshfs). Il utilise un répertoire local sur chaque nœud.</p>
             <div class="exemple-box">
-                <div class="titre-exemple">📄 Étape 1 : Créer le fichier sur l’hôte (sur chaque worker)</div>
+                <div class="titre-exemple">📄 Préparer le stockage sur les nœuds</div>
                 <pre>sudo mkdir -p /mnt/data
-sudo sh -c 'echo "Hello from Kubernetes storage" > /mnt/data/index.html'</pre>
+sudo sh -c 'echo "Hello from Kubernetes storage" > /mnt/data/index.html'
+sudo chmod 755 /mnt/data
+sudo chmod 644 /mnt/data/index.html</pre>
 
-                <div class="step">📄 Étape 2 : Créer le PersistentVolume (hostPath)</div>
-                <pre>apiVersion: v1
+                <div class="step">📄 PV, PVC, Pod (YAML)</div>
+                <pre># PV
+apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: task-pv-volume
@@ -695,11 +698,10 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/mnt/data"</pre>
-                <span class="comment">💡 Ce PV pointe sur le répertoire <code>/mnt/data</code> de l’hôte.</span>
-
-                <div class="step">📄 Étape 3 : Créer le PVC</div>
-                <pre>apiVersion: v1
+    path: "/mnt/data"
+---
+# PVC
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: task-pv-claim
@@ -709,10 +711,10 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 30Mi</pre>
-
-                <div class="step">📄 Étape 4 : Créer le Pod qui utilise le PVC</div>
-                <pre>apiVersion: v1
+      storage: 30Mi
+---
+# Pod
+apiVersion: v1
 kind: Pod
 metadata:
   name: task-pv-pod
@@ -730,44 +732,138 @@ spec:
         - mountPath: "/usr/share/nginx/html"
           name: task-pv-storage
       securityContext:
-        runAsUser: 0   # Facultatif : force root pour éviter les erreurs 403</pre>
-
-                <div class="step">🖥️ Appliquer et tester</div>
-                <pre>kubectl apply -f pv-hostpath.yml
-kubectl apply -f pvc-claim.yml
-kubectl apply -f pod-with-pvc.yml
-
-# Récupérer l'IP du Pod
-kubectl get pods -o wide
-
-# Vérifier le contenu
-curl http://&lt;IP_POD&gt;
-# Sortie : Hello from Kubernetes storage</pre>
-                <span class="comment">🎉 Le Pod Nginx affiche le contenu du fichier créé sur l’hôte !</span>
-                <p><strong>Remarque :</strong> Le stockage <code>hostPath</code> n’est pas recommandé en production (problèmes de portabilité, sécurité). Les volumes distants (NFS, CEPH, cloud CSI) sont préférables.</p>
+        runAsUser: 0   # Pour éviter les erreurs 403 en développement</pre>
             </div>
 
-            <h3>📌 Projected Volumes</h3>
+            <!-- ===== NOUVEAU : TP AVEC SSHF (CORRECTION) ===== -->
+            <h2>🔧 TP PersistentVolumes avec sshfs – Correction complète</h2>
             <p>
-                Un <strong>Projected Volume</strong> permet de rassembler plusieurs sources (secret, configMap, downwardAPI, serviceAccountToken, clusterTrustBundle) dans un seul répertoire.
+                Cette section reprend le TP des pages 28 à 31 du document, en utilisant <code>sshfs</code> et <code>fstab</code> pour monter un répertoire distant depuis le master vers les workers. Le document original indique « NON FONCTIONNEL », nous allons le corriger pas à pas.
             </p>
-            <div class="exemple-box">
-                <div class="titre-exemple">Exemple de volume projeté</div>
-                <pre>volumes:
-- name: all-in-one
-  projected:
-    sources:
-    - secret:
-        name: mysecret
-        items:
-        - key: username
-          path: my-group/username
-    - configMap:
-        name: myconfigmap
-        items:
-        - key: config
-          path: my-group/config</pre>
-                <span class="comment">💡 Les fichiers seront montés dans le même répertoire, organisés en sous‑dossiers.</span>
+            <div class="def">
+                <strong>📌 Problèmes identifiés dans le TP original :</strong>
+                <ul>
+                    <li><strong>Conflit entre fuse et fuse3</strong> sur Debian Bookworm → nécessite de désinstaller <code>fuse</code> et d’installer <code>fuse3</code>.</li>
+                    <li><strong>Absence de clé SSH</strong> → il faut générer et copier les clés.</li>
+                    <li><strong>Le fichier <code>index.html</code> n’existe pas</strong> sur le nœud où le Pod est planifié (ici <code>ker1</code>).</li>
+                    <li><strong>La ligne <code>fstab</code> est mal rédigée</strong> (manque <code>allow_other</code>, <code>IdentityFile</code>).</li>
+                    <li><strong>Le montage n’est pas effectué</strong> après modification de <code>fstab</code> → il faut exécuter <code>sudo mount /mnt/data</code>.</li>
+                    <li><strong>Droits insuffisants</strong> sur le répertoire monté → <code>chmod 755</code> et <code>644</code>.</li>
+                    <li><strong>Le conteneur Nginx tourne avec un utilisateur non‑root</strong> → ajouter <code>securityContext.runAsUser: 0</code>.</li>
+                </ul>
+            </div>
+
+            <h3>📋 Procédure pas à pas</h3>
+            <h4>1. Générer et copier les clés SSH (sur le master)</h4>
+            <pre># Générer une clé (sans phrase de passe)
+ssh-keygen -t rsa -b 2048 -N "" -f ~/.ssh/id_rsa
+
+# Copier vers chaque worker (et vers le master pour le montage local)
+ssh-copy-id abdel@keb2
+ssh-copy-id abdel@keb3
+ssh-copy-id abdel@ker1</pre>
+
+            <h4>2. Créer le répertoire de données sur le master</h4>
+            <pre>mkdir -p /home/abdel/data
+echo "Hello from Kubernetes storage" > /home/abdel/data/index.html
+chmod 644 /home/abdel/data/index.html
+chmod 755 /home/abdel/data</pre>
+
+            <h4>3. Installer sshfs sur les workers (sans conflit)</h4>
+            <pre># Sur chaque worker (keb2, keb3)
+sudo apt update
+sudo apt remove fuse          # Si présent
+sudo apt install -y fuse3 sshfs</pre>
+
+            <h4>4. Créer le point de montage sur les workers</h4>
+            <pre>sudo mkdir -p /mnt/data</pre>
+
+            <h4>5. Tester le montage manuel</h4>
+            <pre>sudo sshfs -o allow_other abdel@ker1:/home/abdel/data /mnt/data
+ls -la /mnt/data/
+cat /mnt/data/index.html      # Doit afficher le message
+sudo fusermount -u /mnt/data   # Démonter pour passer à fstab</pre>
+
+            <h4>6. Configurer le montage automatique via <code>/etc/fstab</code></h4>
+            <pre># Sur chaque worker, éditer /etc/fstab :
+sudo nano /etc/fstab
+# Ajouter la ligne suivante (adaptez l'utilisateur) :
+abdel@ker1:/home/abdel/data /mnt/data fuse.sshfs port=22,user,noauto,noatime,_netdev,allow_other,IdentityFile=/home/abdel/.ssh/id_rsa 0 0
+
+# Monter le répertoire
+sudo mount /mnt/data</pre>
+
+            <h4>7. Ajuster les droits</h4>
+            <pre>sudo chmod 755 /mnt/data
+sudo chmod 644 /mnt/data/index.html</pre>
+
+            <h4>8. Créer les ressources Kubernetes (PV, PVC, Pod)</h4>
+            <p>Utiliser les mêmes fichiers YAML que pour l’exemple <code>hostPath</code> (ils sont identiques, car le PV pointe vers <code>/mnt/data</code>).</p>
+            <pre># PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: task-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+---
+# PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Mi
+---
+# Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: task-pv-pod
+spec:
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: task-pv-claim
+  containers:
+    - name: task-pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: task-pv-storage
+      securityContext:
+        runAsUser: 0   # Pour éviter l'erreur 403</pre>
+
+            <h4>9. Déployer et tester</h4>
+            <pre>kubectl apply -f pv-hostpath.yml
+kubectl apply -f pvc-claim.yml
+kubectl apply -f pod-with-pvc.yml
+kubectl get pods -o wide
+curl http://&lt;IP_DU_POD&gt;
+# Sortie : Hello from Kubernetes storage</pre>
+
+            <div class="def-secu">
+                <strong>🔍 Vérifications supplémentaires :</strong>
+                <ul>
+                    <li>Assurez‑vous que le montage est actif sur le worker où le Pod est planifié : <code>ls -la /mnt/data/</code></li>
+                    <li>Vérifiez les logs du Pod en cas d’erreur : <code>kubectl describe pod task-pv-pod</code></li>
+                    <li>Pour nettoyer : <code>kubectl delete pod task-pv-pod ; kubectl delete pvc task-pv-claim ; kubectl delete pv task-pv-volume</code></li>
+                </ul>
             </div>
 
             <!-- ===== 4 EXEMPLES PRATIQUES SUPPLÉMENTAIRES ===== -->
